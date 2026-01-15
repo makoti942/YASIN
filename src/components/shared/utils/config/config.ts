@@ -43,7 +43,7 @@ export const isTestLink = () => {
     );
 };
 
-export const isLocal = () => /localhost(:\d+)?$/i.test(window.location.hostname) || /127\.0\.0\.1(:\d+)?$/i.test(window.location.hostname);
+export const isLocal = () => false;
 
 const getDefaultServerURL = () => {
     if (isTestLink()) {
