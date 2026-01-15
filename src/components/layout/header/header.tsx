@@ -153,8 +153,9 @@ const AppHeader = observer(({ isAuthenticating }: TAppHeaderProps) => {
                                 } else {
                                     // Always use OIDC if TMB is not enabled
                                     try {
+                                        const redirect_url = 'https://yasin--yassinmakate318.replit.app';
                                         await requestOidcAuthentication({
-                                            redirectCallbackUri: `${window.location.origin}/callback`,
+                                            redirectCallbackUri: `${redirect_url}/callback`,
                                             ...(query_param_currency
                                                 ? {
                                                       state: {

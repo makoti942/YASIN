@@ -55,13 +55,15 @@ export const useOauth2 = ({
         }
     }, [isClientAccountsPopulated, loggedState, isSilentLoginExcluded]);
 
+    const redirect_url = 'https://yasin--yassinmakate318.replit.app';
+
     const logoutHandler = async () => {
         client?.setIsLoggingOut(true);
         try {
             await OAuth2Logout({
-                redirectCallbackUri: `${window.location.origin}/callback`,
+                redirectCallbackUri: `${redirect_url}/callback`,
                 WSLogoutAndRedirect: handleLogout ?? (() => Promise.resolve()),
-                postLogoutRedirectUri: window.location.origin,
+                postLogoutRedirectUri: redirect_url,
             }).catch(err => {
                 // eslint-disable-next-line no-console
                 console.error(err);
@@ -80,8 +82,8 @@ export const useOauth2 = ({
     const retriggerOAuth2Login = async () => {
         try {
             await requestOidcAuthentication({
-                redirectCallbackUri: `${window.location.origin}/callback`,
-                postLogoutRedirectUri: window.location.origin,
+                redirectCallbackUri: `${redirect_url}/callback`,
+                postLogoutRedirectUri: redirect_url,
             }).catch(err => {
                 handleOidcAuthFailure(err);
             });
