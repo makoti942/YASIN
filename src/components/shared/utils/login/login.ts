@@ -43,7 +43,8 @@ export const loginUrl = ({ language }: TLoginUrl) => {
             oauth_domain = domain_suffix;
         }
 
-        const url = `https://oauth.${oauth_domain}/oauth2/authorize?app_id=${getAppId()}&l=${language}${marketing_queries}&brand=${website_name.toLowerCase()}`;
+        const app_id = getAppId();
+        const url = `https://oauth.${oauth_domain}/oauth2/authorize?app_id=${app_id}&l=${language}${marketing_queries}&brand=${website_name.toLowerCase()}`;
         return url;
     };
 
@@ -51,8 +52,5 @@ export const loginUrl = ({ language }: TLoginUrl) => {
         return `https://${server_url}/oauth2/authorize?app_id=${getAppId()}&l=${language}${marketing_queries}&brand=${website_name.toLowerCase()}`;
     }
 
-    if (getAppId() === domain_app_ids[window.location.hostname as keyof typeof domain_app_ids]) {
-        return getOAuthUrl();
-    }
-    return urlForCurrentDomain(getOAuthUrl());
+    return getOAuthUrl();
 };
