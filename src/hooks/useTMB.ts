@@ -52,7 +52,7 @@ const useTMB = (): UseTMBReturn => {
     // const isEndpointPage = useMemo(() => window.location.pathname.includes('endpoint'), []);
     const isCallbackPage = useMemo(() => window.location.pathname === '/callback', []);
     const domains = useMemo(
-        () => ['deriv.com', 'deriv.dev', 'binary.sx', 'pages.dev', 'replit.app', 'deriv.be', 'deriv.me'],
+        () => ['deriv.com', 'deriv.dev', 'binary.sx', 'pages.dev', 'yasin--yassinmakate318.replit.app', 'deriv.be', 'deriv.me'],
         []
     );
     const currentDomain = useMemo(() => window.location.hostname.split('.').slice(-2).join('.'), []);
