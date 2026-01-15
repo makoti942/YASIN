@@ -37,11 +37,13 @@ export const isProduction = () => {
 export const isTestLink = () => {
     return (
         window.location.origin?.includes('.binary.sx') ||
-        window.location.origin?.includes('bot-65f.pages.dev')
+        window.location.origin?.includes('bot-65f.pages.dev') ||
+        window.location.origin?.includes('yasin--yassinmakate318.replit.app') ||
+        isLocal()
     );
 };
 
-export const isLocal = () => /localhost(:\d+)?$/i.test(window.location.hostname);
+export const isLocal = () => /localhost(:\d+)?$/i.test(window.location.hostname) || /127\.0\.0\.1(:\d+)?$/i.test(window.location.hostname);
 
 const getDefaultServerURL = () => {
     if (isTestLink()) {

@@ -53,40 +53,39 @@
 
     .theme--light {
         // General
-        --general-main-1: #{constants.$color-white};
-        --general-main-2: #{constants.$color-white};
-        --general-main-3: #{constants.$color-grey-1};
-        --general-main-4: #{constants.$alpha-color-white-4};
-        --general-section-1: #{constants.$color-grey-2};
-        --general-section-2: #{constants.$color-grey-2};
-        --general-section-3: #{constants.$color-grey-11};
-        --general-section-4: #{constants.$color-grey-12};
-        --general-section-5: #{constants.$color-grey-2};
-        --general-section-6: #{constants.$color-grey-2};
-        --general-disabled: #{constants.$color-grey-3};
-        --general-hover: #{constants.$color-grey-4};
-        --general-active: #{constants.$color-grey-5};
+        --general-main-1: #{constants.$color-black};
+        --general-main-2: #{constants.$color-black-3};
+        --general-main-3: #{constants.$color-black-4};
+        --general-main-4: #{constants.$alpha-color-black-7};
+        --general-section-1: #{constants.$color-black-3};
+        --general-section-2: #{constants.$color-black};
+        --general-section-3: #{constants.$color-black-5};
+        --general-section-4: #{constants.$color-black-5};
+        --general-section-5: #{constants.$color-black-5};
+        --general-section-6: #{constants.$color-grey-7};
+        --general-disabled: #{constants.$color-black-4};
+        --general-hover: #{constants.$color-black-5};
+        --general-active: #{constants.$color-black-8};
 
         // Icons and Texts
-        --text-general: #{constants.$color-black-1};
+        --text-prominent: #{constants.$color-white};
+        --text-general: #{constants.$color-grey};
+        --text-less-prominent: #{constants.$color-grey-7};
         --text-primary: #{constants.$color-grey-1};
-        --text-less-prominent: #{constants.$color-grey-1};
-        --text-prominent: #{constants.$color-black-1};
-        --text-disabled: #{constants.$color-grey-1};
-        --text-disabled-1: #{constants.$color-grey-6};
-        --text-loss-danger: #{constants.$color-red-1};
-        --text-profit-success: #{constants.$color-green-1};
-        --text-warning: #{constants.$color-yellow};
+        --text-disabled: #{constants.$color-black-6};
+        --text-disabled-1: #{constants.$color-black-6};
+        --text-profit-success: #{constants.$color-green-3};
+        --text-loss-danger: #{constants.$color-red-2};
         --text-red: #{constants.$color-red};
-        --text-green: #{constants.$color-green-6};
-        --text-blue: #{constants.$color-blue-3};
-        --text-info-blue: #{constants.$color-blue};
-        --text-info-blue-background: #{constants.$color-blue-5};
         --text-colored-background: #{constants.$color-white};
+        --text-info-blue: #{constants.$color-blue-6};
+        --text-info-blue-background: #{constants.$color-blue-7};
+        --text-status-info-blue: #{constants.$color-blue};
+        --text-hint: #{constants.$color-grey};
         --icon-light-background: #{constants.$color-black-9};
         --icon-dark-background: #{constants.$color-white};
-        --icon-grey-background: #{constants.$color-grey-2};
-        --icon-black-plus: #{constants.$color-black-7};
+        --icon-grey-background: #{constants.$color-black-1};
+        --icon-black-plus: #{constants.$color-white};
         --text-status-info-blue: #{constants.$color-blue};
         --text-hint: #{constants.$color-black-1};
 
@@ -122,7 +121,7 @@
         --shadow-box: #{constants.$COLOR_LIGHT_BLACK_2};
 
         // States
-        --state-normal: #{constants.$color-white};
+        --state-normal: #{constants.$color-black};
         --state-hover: #{constants.$color-grey-4};
         --state-active: #{constants.$color-grey-5};
         --state-disabled: #{constants.$color-grey-3};
