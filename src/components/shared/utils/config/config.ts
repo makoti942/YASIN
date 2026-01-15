@@ -37,8 +37,7 @@ export const isProduction = () => {
 export const isTestLink = () => {
     return (
         window.location.origin?.includes('.binary.sx') ||
-        window.location.origin?.includes('bot-65f.pages.dev') ||
-        isLocal()
+        window.location.origin?.includes('bot-65f.pages.dev')
     );
 };
 
