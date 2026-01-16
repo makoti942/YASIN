@@ -5,10 +5,8 @@
         <link rel="icon" type="image/svg+xml" href="/deriv-logo.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
-        <!-- PWA Manifest -->
         <link rel="manifest" href="/manifest.json" />
 
-        <!-- PWA Meta Tags -->
         <meta name="theme-color" content="#ff444f" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -17,7 +15,6 @@
         <meta name="msapplication-TileColor" content="#ff444f" />
         <meta name="msapplication-tap-highlight" content="no" />
 
-        <!-- Apple Touch Icons -->
         <link rel="apple-touch-icon" href="/assets/icons/pwa/icon-152x152.png" />
         <link rel="apple-touch-icon" sizes="152x152" href="/assets/icons/pwa/icon-152x152.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/pwa/icon-192x192.png" />
@@ -32,18 +29,56 @@
             content="Import your current bot or learn how to create a trading bot from scratch with our detailed guides, FAQs, and tutorials. Start with a quick strategy!"
         />
         <title>Build a trading bot without coding | Deriv Bot.</title>
+        
         <style>
             :root {
                 font-size: 62.5%;
             }
+
+            /* --- MAKOTI TRADERS CUSTOM DARK THEME --- */
+            
+            /* 1. Force the Bot Workspace background to Black */
+            .blocklyMainBackground, .injectionDiv {
+                background-color: #000000 !important;
+                fill: #000000 !important;
+            }
+
+            /* 2. FIX: Prevent words from disappearing after selection */
+            /* This forces the text to be Cyber Blue so it stands out on black */
+            .blocklyText, 
+            .blocklyEditableText > .blocklyText,
+            .blocklyFieldDropdown .blocklyText {
+                fill: #00d9ff !important;
+                color: #00d9ff !important;
+            }
+
+            /* 3. Style the input boxes inside the blocks */
+            .blocklyEditableText > .blocklyFieldRect {
+                fill: #1a1a1a !important; /* Dark background for the selection box */
+                fill-opacity: 1 !important;
+                stroke: #00d9ff !important; /* Blue border */
+            }
+
+            /* 4. Fix the Dropdown selection list colors */
+            .goog-menu, .goog-menuitem {
+                background-color: #0a0e17 !important;
+                color: #00d9ff !important;
+            }
+
+            /* 5. Force the main page theme to match */
+            .body.theme--light {
+                background-color: #000000 !important;
+                color: #ffffff !important;
+            }
         </style>
+        
     </head>
 
     <body class="body theme theme--light">
         <div id="modal_root" class="modal-root"></div>
         <div id="popup_root" class="popup-root"></div>
         <div id="root"></div>
-        <!-- LiveChat script -->
+        
         <script type="text/javascript" defer>
             window.__lc = window.__lc || {};
             window.__lc.license = 12049137;
@@ -85,11 +120,7 @@
                 (!n.__lc.asyncInit && e.init(), (n.LiveChatWidget = n.LiveChatWidget || e));
             })(window, document, [].slice);
         </script>
-        <!-- End LiveChat script -->
-
-        <!-- Browser Service Worker Prevention -->
         <script>
-            // Check browser compatibility and prevent service worker issues
             const userAgent = navigator.userAgent.toLowerCase();
             const isFirefox = userAgent.includes('firefox');
             const isSafari = userAgent.includes('safari') && !userAgent.includes('chrome');
@@ -97,17 +128,11 @@
 
             if (shouldSkipSW) {
                 const browserName = isFirefox ? 'Firefox' : 'Safari';
-                console.log(
-                    `[HTML] ${browserName} detected - preventing service worker registration to avoid chunk loading issues`
-                );
-
-                // Cleanup any existing service workers
                 if ('serviceWorker' in navigator) {
                     navigator.serviceWorker
                         .getRegistrations()
                         .then(registrations => {
                             registrations.forEach(registration => {
-                                console.log(`[HTML] Unregistering existing SW for ${browserName}:`, registration.scope);
                                 registration.unregister();
                             });
                         })
@@ -117,16 +142,6 @@
                 }
             }
 
-            // Check online/offline status
-            console.log('[HTML] Online status:', navigator.onLine);
-            window.addEventListener('online', () => {
-                console.log('[HTML] Back online');
-            });
-            window.addEventListener('offline', () => {
-                console.log('[HTML] Gone offline');
-            });
-
-            // Listen for service worker messages if registered by PWA utils (non-problematic browsers only)
             if ('serviceWorker' in navigator && !shouldSkipSW) {
                 navigator.serviceWorker.addEventListener('message', event => {
                     console.log('[HTML] Message from service worker:', event.data);
