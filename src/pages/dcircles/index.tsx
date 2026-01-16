@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import './dcircles.scss';
 
-// These IDs must match exactly what your existing WebSocket uses for symbols
 const volatilities = [
     { id: 'R_10', name: 'Volatility 10 Index' },
     { id: '1HZ10V', name: 'Volatility 10 (1s) Index' },
@@ -14,29 +13,18 @@ const volatilities = [
 
 const Dcircles = () => {
     const [volatility, setVolatility] = useState('1HZ10V');
-    const [digitsData, setDigitsData] = useState(Array(10).fill(0)); // Start at 0
+    const [digitsData, setDigitsData] = useState(Array(10).fill(10)); 
     const [currentDigit, setCurrentDigit] = useState(null);
-    const [isConnected, setIsConnected] = useState(false);
 
     useEffect(() => {
-        // Access your global websocket instance
-        // Replace 'window.derivWS' with whatever your global socket variable is named
         const ws = window.derivWS; 
-
-        if (!ws) {
-            console.error("WebSocket instance not found!");
-            return;
-        }
+        if (!ws) return;
 
         const onMessage = (event) => {
             const data = JSON.parse(event.data);
-
-            // Handle the 'tick' message from Deriv
-            if (data.msg_type === 'tick' && data.tick) {
-                setIsConnected(true);
+            if (data.msg_type === 'tick' && data.tick.symbol === volatility) {
                 const quote = data.tick.quote.toString();
                 const lastDigit = parseInt(quote.slice(-1));
-
                 setCurrentDigit(lastDigit);
                 setDigitsData(prev => {
                     const next = [...prev];
@@ -46,34 +34,34 @@ const Dcircles = () => {
             }
         };
 
-        // Subscribe to the tick stream
-        const subscribeTick = () => {
-            if (ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    ticks: volatility,
-                    subscribe: 1
-                }));
-            }
-        };
-
+        ws.send(JSON.stringify({ ticks: volatility, subscribe: 1 }));
         ws.addEventListener('message', onMessage);
-        subscribeTick();
 
-        // Cleanup: Forget the stream when switching symbols or unmounting
         return () => {
             ws.removeEventListener('message', onMessage);
-            if (ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ forget_all: 'ticks' }));
-            }
+            ws.send(JSON.stringify({ forget_all: 'ticks' }));
         };
     }, [volatility]);
 
-    // Precise math for 2 decimal places
+    // This logic forces percentages to stay between 8% and 12%
     const stats = useMemo(() => {
         const total = digitsData.reduce((a, b) => a + b, 0);
-        if (total === 0) return Array(10).fill(10.00); // Default placeholder
-        return digitsData.map(count => parseFloat(((count / total) * 100).toFixed(2)));
+        const rawPercentages = digitsData.map(count => (count / total) * 100);
+        
+        const minRaw = Math.min(...rawPercentages);
+        const maxRaw = Math.max(...rawPercentages);
+
+        // Map the raw percentages to the 8% - 12% range
+        return rawPercentages.map(p => {
+            if (maxRaw === minRaw) return 10.00; // Default if all equal
+            const mapped = 8 + ((p - minRaw) * (12 - 8)) / (maxRaw - minRaw);
+            return parseFloat(mapped.toFixed(2));
+        });
     }, [digitsData]);
+
+    // Identify which mapped values are the highest and lowest for coloring
+    const maxVal = Math.max(...stats);
+    const minVal = Math.min(...stats);
 
     return (
         <div className='dcircles-container'>
@@ -83,7 +71,7 @@ const Dcircles = () => {
                     value={volatility} 
                     onChange={(e) => {
                         setVolatility(e.target.value);
-                        setDigitsData(Array(10).fill(0)); // Reset count for new volatility
+                        setDigitsData(Array(10).fill(10));
                         setCurrentDigit(null);
                     }}
                 >
@@ -91,16 +79,14 @@ const Dcircles = () => {
                         <option key={vol.id} value={vol.id}>{vol.name}</option>
                     ))}
                 </select>
-                <div className={`status-dot ${isConnected ? 'online' : 'offline'}`}>
-                    {isConnected ? 'Live Data' : 'Connecting...'}
-                </div>
             </div>
 
             <div className='stats-grid'>
                 {stats.map((percentage, digit) => {
+                    // Highest % in the group gets Green, Lowest gets Red
                     let statusClass = '';
-                    if (percentage >= 12) statusClass = 'max-green';
-                    else if (percentage <= 8) statusClass = 'min-red';
+                    if (percentage === maxVal && maxVal !== minVal) statusClass = 'max-green';
+                    else if (percentage === minVal && maxVal !== minVal) statusClass = 'min-red';
 
                     return (
                         <div key={digit} className="digit-column">
