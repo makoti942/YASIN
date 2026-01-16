@@ -23,6 +23,7 @@ import initHotjar from '@/utils/hotjar';
 import { setSmartChartsPublicPath } from '@deriv/deriv-charts';
 import { ThemeProvider } from '@deriv-com/quill-ui';
 import { localize } from '@deriv-com/translations';
+import { TickDataProvider } from '@/contexts/TickDataContext';
 import Audio from '../components/audio';
 import BlocklyLoading from '../components/blockly-loading';
 import BotStopped from '../components/bot-stopped';
@@ -161,9 +162,6 @@ const AppContent = observer(() => {
     }, []);
 
     React.useEffect(() => {
-        // Check if api is initialized and then subscribe to the api messages
-        // Also we should only subscribe to the messages once user is logged in
-        // And is not already subscribed to the messages
         if (!is_subscribed_to_msg_listener.current && client.is_logged_in && is_api_initialized && api_base?.api) {
             is_subscribed_to_msg_listener.current = true;
             msg_listener.current = api_base.api.onMessage()?.subscribe(handleMessage);
@@ -178,7 +176,6 @@ const AppContent = observer(() => {
 
     React.useEffect(() => {
         showDigitalOptionsMaltainvestError(client, common);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [client.is_options_blocked, client.account_settings?.country_code, client.clients_country]);
 
     const init = () => {
@@ -192,17 +189,12 @@ const AppContent = observer(() => {
 
     const changeActiveSymbolLoadingState = () => {
         init();
-
         const retrieveActiveSymbols = () => {
             const { active_symbols } = ApiHelpers.instance;
-
-            // Handle offline scenario
             if (!isOnline) {
-                console.log('[Offline] Skipping active symbols retrieval, showing dashboard');
                 setIsLoading(false);
                 return;
             }
-
             active_symbols
                 .retrieveActiveSymbols(true)
                 .then(() => {
@@ -210,7 +202,6 @@ const AppContent = observer(() => {
                 })
                 .catch(error => {
                     console.error('[API] Failed to retrieve active symbols:', error);
-                    // Don't stay in loading state if API fails
                     setIsLoading(false);
                 });
         };
@@ -218,28 +209,21 @@ const AppContent = observer(() => {
         if (ApiHelpers?.instance?.active_symbols) {
             retrieveActiveSymbols();
         } else {
-            // This is a workaround to fix the issue where the active symbols are not loaded immediately
-            // when the API is initialized. Should be replaced with RxJS pubsub
             const intervalId = setInterval(() => {
                 if (ApiHelpers?.instance?.active_symbols) {
                     clearInterval(intervalId);
                     retrieveActiveSymbols();
                 } else if (!isOnline) {
-                    // If offline, don't wait indefinitely
                     clearInterval(intervalId);
-                    console.log('[Offline] Stopping active symbols wait, showing dashboard');
                     setIsLoading(false);
                 }
             }, 1000);
-
-            // Set a maximum timeout to prevent infinite loading
             setTimeout(() => {
                 clearInterval(intervalId);
                 if (is_loading) {
-                    console.log('[Timeout] Active symbols loading timeout, showing dashboard');
                     setIsLoading(false);
                 }
-            }, 10000); // 10 second timeout
+            }, 10000);
         }
     };
 
@@ -251,15 +235,12 @@ const AppContent = observer(() => {
                 changeActiveSymbolLoadingState();
             }
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [is_api_initialized]);
 
-    // use is_landing_company_loaded to know got details of accounts to identify should show an error or not
     React.useEffect(() => {
         if (client.is_logged_in && client.is_landing_company_loaded && is_api_initialized) {
             changeActiveSymbolLoadingState();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [client.is_landing_company_loaded, is_api_initialized, client.loginid]);
 
     useEffect(() => {
@@ -271,22 +252,18 @@ const AppContent = observer(() => {
 
     if (common?.error) return null;
 
-    // Show loading message based on online/offline state
     const getLoadingMessage = () => {
         if (is_eu_error_loading) return '';
         if (!isOnline) return localize('Loading offline dashboard...');
         return localize('Initializing Deriv Bot account...');
     };
 
-    // Skip loading entirely when offline - show dashboard directly
-    if (!isOnline) {
-        console.log('[Offline] Bypassing loader, showing dashboard directly');
-        return (
-            <AuthLoadingWrapper>
-                <ThemeProvider theme={is_dark_mode_on ? 'dark' : 'light'}>
+    const content = (
+        <AuthLoadingWrapper>
+            <ThemeProvider theme={is_dark_mode_on ? 'dark' : 'light'}>
+                <TickDataProvider>
                     <BlocklyLoading />
                     <div className='bot-dashboard bot' data-testid='dt_bot_dashboard'>
-                        {/* <PWAInstallModalTest /> */}
                         <Audio />
                         <Main />
                         <BotBuilder />
@@ -296,31 +273,13 @@ const AppContent = observer(() => {
                         <ToastContainer limit={3} draggable={false} />
                         <TncStatusUpdateModal />
                     </div>
-                </ThemeProvider>
-            </AuthLoadingWrapper>
-        );
-    }
-
-    return is_loading ? (
-        <ChunkLoader message={getLoadingMessage()} />
-    ) : (
-        <AuthLoadingWrapper>
-            <ThemeProvider theme={is_dark_mode_on ? 'dark' : 'light'}>
-                <BlocklyLoading />
-                <div className='bot-dashboard bot' data-testid='dt_bot_dashboard'>
-                    {/* <PWAInstallModalTest /> */}
-                    <Audio />
-                    <Main />
-                    <BotBuilder />
-                    <BotStopped />
-                    <TransactionDetailsModal />
-                    <PWAInstallModal />
-                    <ToastContainer limit={3} draggable={false} />
-                    <TncStatusUpdateModal />
-                </div>
+                </TickDataProvider>
             </ThemeProvider>
         </AuthLoadingWrapper>
     );
+
+    if (!isOnline) return content;
+    return is_loading ? <ChunkLoader message={getLoadingMessage()} /> : content;
 });
 
 export default AppContent;
