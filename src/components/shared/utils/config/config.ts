@@ -137,13 +137,7 @@ export const getDebugServiceWorker = () => {
 };
 
 export const generateOAuthURL = () => {
-    const { getOauthURL } = URLUtils;
-    const oauth_url = getOauthURL();
-    const original_url = new URL(oauth_url);
-
-    // Use production OAuth by default to avoid localhost redirects
-    original_url.hostname = 'oauth.deriv.com';
-    original_url.searchParams.set('redirect_uri', 'https://yasin--yassinmakate318.replit.app/callback');
-    
-    return original_url.toString();
+    // Use production OAuth with hardcoded Replit redirect to bypass any dynamic detection
+    const oauth_url = `https://oauth.deriv.com/oauth2/authorize?app_id=101585&l=EN&brand=makoti_traders&redirect_uri=https://yasin--yassinmakate318.replit.app/callback`;
+    return oauth_url;
 };
