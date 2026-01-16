@@ -38,11 +38,11 @@
     // Brand primary colors
     --brand-white: #{constants.$color-white};
     --brand-dark-grey: #{constants.$color-black};
-    --brand-red-coral: #{constants.$color-red};
-    --brand-orange: #{constants.$color-orange};
+    --brand-red-coral: #{constants.$color-green-3};
+    --brand-orange: #{constants.$color-green-3};
 
     // Brand secondary colors
-    --brand-secondary: #{constants.$color-green};
+    --brand-secondary: #{constants.$color-green-3};
 
     // App Cards gradient background
     --app-card-virtual: #{constants.$gradient-virtual};
