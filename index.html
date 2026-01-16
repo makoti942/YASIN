@@ -2,10 +2,10 @@
 <html lang="en" dir="auto">
     <head>
         <meta charset="UTF-8" />
-        <link rel="icon" type="image/svg+xml" href="/deriv-logo.svg" />
+        <link rel="icon" type="image/png" href="/makoti-logo.png" />
+        <link rel="apple-touch-icon" href="/makoti-logo.png" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-        <meta name="theme-color" content="#00d9ff" />
-        <title>Makoti Traders | Bot Builder</title>
+        <title>Makoti Traders | Premium Bot</title>
         
         <style>
             :root { font-size: 62.5%; }
@@ -16,93 +16,83 @@
                 fill: #000000 !important;
             }
 
-            /* 2. CYBER BLUE TEXT (Default) */
-            .blocklyText {
-                fill: #00d9ff !important;
+            /* 2. LOGO HEADER STYLING */
+            #makoti-header {
+                width: 100%;
+                background: #0a0e17;
+                padding: 10px;
+                text-align: center;
+                border-bottom: 2px solid #00d9ff;
+            }
+            #makoti-header img {
+                height: 40px; /* Adjust height as needed */
             }
 
-            /* 3. THE COLOR PROTECTOR: High Specificity Selectors */
-            /* This targets SVG text elements by their internal color classes */
-            
-            /* FORCING GREEN (Wins) */
-            svg .blocklyText[style*="fill: #008000"],
-            svg .blocklyText[style*="fill: rgb(0, 128, 0)"],
-            .db-contract-card__result--win,
-            .dc-stat__value--profit {
-                fill: #00ff41 !important; 
-                color: #00ff41 !important;
-            }
+            /* 3. TEXT COLORS */
+            .blocklyText { fill: #00d9ff !important; }
 
-            /* FORCING RED (Losses) */
-            svg .blocklyText[style*="fill: #cc0000"],
-            svg .blocklyText[style*="fill: rgb(204, 0, 0)"],
-            .db-contract-card__result--loss,
-            .dc-stat__value--loss {
-                fill: #ff444f !important;
-                color: #ff444f !important;
-            }
+            /* WIN/LOSS COLORS (High Priority) */
+            .makoti-profit { fill: #00ff41 !important; color: #00ff41 !important; }
+            .makoti-loss { fill: #ff444f !important; color: #ff444f !important; }
 
-            /* 4. STOP BUTTON (Glow Red) */
-            .makoti-stop-active {
+            /* 4. DYNAMIC BUTTONS */
+            .makoti-stop-btn {
                 background-color: #ff444f !important;
-                color: #ffffff !important;
                 box-shadow: 0 0 15px #ff444f !important;
+                color: white !important;
             }
 
-            /* 5. Inputs & Menus */
+            /* 5. INPUT BOXES */
             .blocklyEditableText > .blocklyFieldRect {
                 fill: #1a1a1a !important;
                 stroke: #00d9ff !important;
-            }
-            .goog-menu, .goog-menuitem {
-                background-color: #0a0e17 !important;
-                color: #00d9ff !important;
             }
         </style>
     </head>
 
     <body class="body theme theme--light">
+        <div id="makoti-header">
+            <img src="/makoti-logo.png" alt="Makoti Traders Logo">
+        </div>
+
         <div id="root"></div>
         
         <script>
-            // --- MAKOTI TRADERS UI ENGINE ---
-            const uiWatcher = new MutationObserver(() => {
+            // --- MAKOTI TRADERS POWER ENGINE ---
+            const makotiEngine = new MutationObserver(() => {
                 
-                // A. THE STOP BUTTON LOGIC
-                const allButtons = document.querySelectorAll('button');
-                allButtons.forEach(btn => {
+                // A. FIX THE STOP BUTTON
+                document.querySelectorAll('button').forEach(btn => {
                     if (btn.textContent.toLowerCase().includes('stop')) {
-                        btn.classList.add('makoti-stop-active');
+                        btn.classList.add('makoti-stop-btn');
                     } else {
-                        btn.classList.remove('makoti-stop-active');
+                        btn.classList.remove('makoti-stop-btn');
                     }
                 });
 
-                // B. THE VALUE-BASED COLOR LOGIC (The "Ultimate Fix")
-                // This checks every text element for numbers and colors them properly
-                const textElements = document.querySelectorAll('.blocklyText, .dc-stat__value, span');
+                // B. FIX ALL LOSS COLORS (Individual & Total)
+                const allNumbers = document.querySelectorAll('.blocklyText, .dc-stat__value, span, div');
                 
-                textElements.forEach(el => {
-                    const content = el.textContent.trim();
+                allNumbers.forEach(el => {
+                    const val = el.textContent.trim();
                     
-                    // 1. If it contains a minus sign, it's a LOSS (Red)
-                    if (content.startsWith('-') || content.includes('-$')) {
+                    // Logic: If it has a minus sign, it is a LOSS
+                    if (val.includes('-')) {
                         el.style.setProperty('fill', '#ff444f', 'important');
                         el.style.setProperty('color', '#ff444f', 'important');
+                        el.classList.add('makoti-loss');
                     } 
-                    // 2. If it's a positive number (and not a label or time), it's a WIN (Green)
-                    else if (/^\+?\d/.test(content) && !content.includes(':')) {
-                        // Check if it's likely a profit value
-                        if (content.includes('$') || content.includes('.') || content.startsWith('+')) {
-                            el.style.setProperty('fill', '#00ff41', 'important');
-                            el.style.setProperty('color', '#00ff41', 'important');
-                        }
+                    // Logic: If it is a positive profit number
+                    else if ((val.includes('$') || val.includes('+')) && !val.includes(':')) {
+                        el.style.setProperty('fill', '#00ff41', 'important');
+                        el.style.setProperty('color', '#00ff41', 'important');
+                        el.classList.add('makoti-profit');
                     }
                 });
             });
 
-            // Start observing the entire bot for changes
-            uiWatcher.observe(document.body, { 
+            // Start watching for changes in the trade results
+            makotiEngine.observe(document.body, { 
                 childList: true, 
                 subtree: true, 
                 characterData: true 
