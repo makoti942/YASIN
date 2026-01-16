@@ -4,143 +4,109 @@
         <meta charset="UTF-8" />
         <link rel="icon" type="image/svg+xml" href="/deriv-logo.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-
-        <link rel="manifest" href="/manifest.json" />
-
         <meta name="theme-color" content="#00d9ff" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Makoti Traders" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="msapplication-TileColor" content="#00d9ff" />
-        <meta name="msapplication-tap-highlight" content="no" />
-
-        <link rel="apple-touch-icon" href="/assets/icons/pwa/icon-152x152.png" />
-        <link rel="apple-touch-icon" sizes="152x152" href="/assets/icons/pwa/icon-152x152.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/pwa/icon-192x192.png" />
-        
-        <meta name="title" content="Makoti Traders | Premium Trading Bot" />
-        <meta name="description" content="Automated trading solutions by Makoti Traders. Professional tools for Deriv traders." />
         <title>Makoti Traders | Bot Builder</title>
         
         <style>
-            :root {
-                font-size: 62.5%;
-            }
+            :root { font-size: 62.5%; }
 
-            /* --- MAKOTI TRADERS CUSTOM DARK THEME --- */
-            
-            /* 1. Force the Bot Workspace background to Black */
-            .blocklyMainBackground, .injectionDiv {
+            /* 1. DARK THEME BASE */
+            .blocklyMainBackground, .injectionDiv, .body.theme--light {
                 background-color: #000000 !important;
                 fill: #000000 !important;
             }
 
-            /* 2. General Text Color (Cyber Blue) */
+            /* 2. CYBER BLUE TEXT (Default) */
             .blocklyText {
                 fill: #00d9ff !important;
             }
 
-            /* 3. FIX: Profit (Green) and Loss (Red) Colors */
-            /* This ensures results stay visible and correctly colored */
-            .blocklyText[style*="fill: rgb(0, 128, 0)"], 
-            .blocklyText[style*="fill: #008000"],
-            .db-contract-card__result--win {
-                fill: #00ff41 !important; /* Matrix Green */
+            /* 3. THE COLOR PROTECTOR: High Specificity Selectors */
+            /* This targets SVG text elements by their internal color classes */
+            
+            /* FORCING GREEN (Wins) */
+            svg .blocklyText[style*="fill: #008000"],
+            svg .blocklyText[style*="fill: rgb(0, 128, 0)"],
+            .db-contract-card__result--win,
+            .dc-stat__value--profit {
+                fill: #00ff41 !important; 
                 color: #00ff41 !important;
             }
 
-            .blocklyText[style*="fill: rgb(204, 0, 0)"], 
-            .blocklyText[style*="fill: #cc0000"],
-            .db-contract-card__result--loss {
-                fill: #ff444f !important; /* Vivid Red */
+            /* FORCING RED (Losses) */
+            svg .blocklyText[style*="fill: #cc0000"],
+            svg .blocklyText[style*="fill: rgb(204, 0, 0)"],
+            .db-contract-card__result--loss,
+            .dc-stat__value--loss {
+                fill: #ff444f !important;
                 color: #ff444f !important;
             }
 
-            /* 4. Style the input boxes */
-            .blocklyEditableText > .blocklyFieldRect {
-                fill: #1a1a1a !important;
-                fill-opacity: 1 !important;
-                stroke: #00d9ff !important;
-            }
-
-            /* 5. Dropdown menus */
-            .goog-menu, .goog-menuitem {
-                background-color: #0a0e17 !important;
-                color: #00d9ff !important;
-            }
-
-            /* 6. Dynamic Stop Button Color */
-            /* This applies when the bot is running */
-            .bot-stop-button--active {
+            /* 4. STOP BUTTON (Glow Red) */
+            .makoti-stop-active {
                 background-color: #ff444f !important;
-                color: white !important;
+                color: #ffffff !important;
                 box-shadow: 0 0 15px #ff444f !important;
             }
 
-            .body.theme--light {
-                background-color: #000000 !important;
-                color: #ffffff !important;
+            /* 5. Inputs & Menus */
+            .blocklyEditableText > .blocklyFieldRect {
+                fill: #1a1a1a !important;
+                stroke: #00d9ff !important;
+            }
+            .goog-menu, .goog-menuitem {
+                background-color: #0a0e17 !important;
+                color: #00d9ff !important;
             }
         </style>
     </head>
 
     <body class="body theme theme--light">
-        <div id="modal_root" class="modal-root"></div>
-        <div id="popup_root" class="popup-root"></div>
         <div id="root"></div>
         
-        <script type="text/javascript" defer>
-            window.__lc = window.__lc || {};
-            window.__lc.license = 12049137;
-            window.__lc.asyncInit = true;
-            (function (n, t, c) {
-                function i(n) { return e._h ? e._h.apply(null, n) : e._q.push(n); }
-                var e = {
-                    _q: [], _h: null, _v: '2.0',
-                    on: function () { i(['on', c.call(arguments)]); },
-                    once: function () { i(['once', c.call(arguments)]); },
-                    off: function () { i(['off', c.call(arguments)]); },
-                    get: function () { if (!e._h) throw new Error('[LiveChatWidget] Error'); return i(['get', c.call(arguments)]); },
-                    call: function () { i(['call', c.call(arguments)]); },
-                    init: function () {
-                        setTimeout(() => {
-                            var n = t.createElement('script');
-                            n.async = !0; n.type = 'text/javascript';
-                            n.src = 'https://cdn.livechatinc.com/tracking.js';
-                            t.head.appendChild(n);
-                        }, 3000);
-                    },
-                };
-                (!n.__lc.asyncInit && e.init(), (n.LiveChatWidget = n.LiveChatWidget || e));
-            })(window, document, [].slice);
-        </script>
-
         <script>
-            // --- SMART WATCHER FOR STOP BUTTON & COLORS ---
-            const observer = new MutationObserver(() => {
-                // 1. Find the Stop button (usually has 'stop' in the class or text)
-                const buttons = document.querySelectorAll('button');
-                buttons.forEach(btn => {
+            // --- MAKOTI TRADERS UI ENGINE ---
+            const uiWatcher = new MutationObserver(() => {
+                
+                // A. THE STOP BUTTON LOGIC
+                const allButtons = document.querySelectorAll('button');
+                allButtons.forEach(btn => {
                     if (btn.textContent.toLowerCase().includes('stop')) {
-                        // If button exists and is visible, make it Neon Red
-                        btn.style.backgroundColor = '#ff444f';
-                        btn.style.color = 'white';
-                        btn.style.boxShadow = '0 0 10px #ff444f';
+                        btn.classList.add('makoti-stop-active');
+                    } else {
+                        btn.classList.remove('makoti-stop-active');
+                    }
+                });
+
+                // B. THE VALUE-BASED COLOR LOGIC (The "Ultimate Fix")
+                // This checks every text element for numbers and colors them properly
+                const textElements = document.querySelectorAll('.blocklyText, .dc-stat__value, span');
+                
+                textElements.forEach(el => {
+                    const content = el.textContent.trim();
+                    
+                    // 1. If it contains a minus sign, it's a LOSS (Red)
+                    if (content.startsWith('-') || content.includes('-$')) {
+                        el.style.setProperty('fill', '#ff444f', 'important');
+                        el.style.setProperty('color', '#ff444f', 'important');
+                    } 
+                    // 2. If it's a positive number (and not a label or time), it's a WIN (Green)
+                    else if (/^\+?\d/.test(content) && !content.includes(':')) {
+                        // Check if it's likely a profit value
+                        if (content.includes('$') || content.includes('.') || content.startsWith('+')) {
+                            el.style.setProperty('fill', '#00ff41', 'important');
+                            el.style.setProperty('color', '#00ff41', 'important');
+                        }
                     }
                 });
             });
 
-            // Start watching the page for changes
-            observer.observe(document.body, { childList: true, subtree: true });
-
-            // Service Worker Logic
-            const userAgent = navigator.userAgent.toLowerCase();
-            const shouldSkipSW = userAgent.includes('firefox') || (userAgent.includes('safari') && !userAgent.includes('chrome'));
-
-            if (shouldSkipSW && 'serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
-            }
+            // Start observing the entire bot for changes
+            uiWatcher.observe(document.body, { 
+                childList: true, 
+                subtree: true, 
+                characterData: true 
+            });
         </script>
     </body>
 </html>
