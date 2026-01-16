@@ -1,80 +1,124 @@
 .dcircles-container {
-    padding: 24px;
-    color: #fff;
-    background: var(--general-main-1);
-    min-height: 100%;
+  padding: 20px;
+  background-color: #121212; // Dark professional background
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  border-radius: 12px;
+  max-width: 900px;
+  margin: 0 auto;
+
+  // 1. Volatility Selection Buttons
+  .volatility-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 40px;
+    justify-content: center;
+
+    button {
+      background: #252525;
+      border: 1px solid #444;
+      color: #ccc;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: #333;
+      }
+
+      &.active {
+        background: #3e4ed8; // Trading Blue
+        color: white;
+        border-color: #5c6cf2;
+      }
+    }
+  }
+
+  // 2. The Digits Grid
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); // 5 circles per row
+    gap: 25px;
+    row-gap: 50px;
+    justify-items: center;
+
+    @media (max-width: 600px) {
+      grid-template-columns: repeat(2, 1fr); // 2 per row on mobile
+    }
+  }
+
+  .digit-column {
     display: flex;
     flex-direction: column;
     align-items: center;
+    position: relative;
+    width: 100px;
+  }
 
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 16px;
-        width: 100%;
-        max-width: 800px;
-        margin-bottom: 40px;
+  // 3. The Arrow Cursor
+  .arrow-cursor {
+    font-size: 20px;
+    margin-bottom: 5px;
+    color: #ffffff;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.2s ease-in-out;
 
-        @media (max-width: 600px) {
-            grid-template-columns: repeat(2, 1fr);
-        }
+    &.visible {
+      opacity: 1;
+      transform: translateY(0);
+      animation: bounce 1s infinite;
+    }
+  }
+
+  // 4. The Circles
+  .circle-digit {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 3px solid #444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    background: #1a1a1a;
+    transition: all 0.4s ease;
+
+    &.highlight-border {
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
     }
 
-    .digit-card {
-        background: var(--general-section-1);
-        border: 1px solid var(--border-normal);
-        border-radius: 8px;
-        padding: 16px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        transition: transform 0.2s;
-
-        &.active {
-            border-color: #4bb4b3;
-            box-shadow: 0 0 10px rgba(75, 180, 179, 0.3);
-            transform: scale(1.05);
-        }
-
-        .digit-label {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 12px;
-        }
-
-        .bar-wrapper {
-            height: 100px;
-            width: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 4px;
-            display: flex;
-            flex-direction: column-reverse;
-            overflow: hidden;
-            margin-bottom: 8px;
-
-            .bar {
-                width: 100%;
-                background: #666;
-                transition: height 0.3s ease;
-
-                &.max { background: #4bb4b3; }
-                &.min { background: #ff444f; }
-            }
-        }
-
-        .percentage {
-            font-size: 14px;
-            color: #999;
-        }
+    // Percentage Logic Colors
+    &.max-green {
+      border-color: #4caf50; // Green for >= 12%
+      color: #4caf50;
+      background: rgba(76, 175, 80, 0.1);
     }
 
-    .current-display {
-        font-size: 24px;
-        .highlight {
-            color: #4bb4b3;
-            font-weight: bold;
-            font-size: 48px;
-            margin-left: 12px;
-        }
+    &.min-red {
+      border-color: #f44336; // Red for <= 8%
+      color: #f44336;
+      background: rgba(244, 67, 54, 0.1);
     }
+  }
+
+  // 5. Percentage Text
+  .percentage-label {
+    margin-top: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #bbb;
+
+    &.max-green { color: #4caf50; }
+    &.min-red { color: #f44336; }
+  }
+}
+
+// Simple bounce animation for the arrow
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
 }
