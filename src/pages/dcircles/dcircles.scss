@@ -1,51 +1,46 @@
 .dcircles-container {
-  padding: 20px;
-  background-color: #121212; // Dark professional background
+  padding: 40px 20px;
+  background-color: #0b0e11; // Deep dark trading background
   color: #ffffff;
-  font-family: 'Inter', sans-serif;
-  border-radius: 12px;
-  max-width: 900px;
-  margin: 0 auto;
+  border-radius: 8px;
 
-  // 1. Volatility Selection Buttons
-  .volatility-selector {
+  .selector-area {
+    margin-bottom: 60px;
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 40px;
     justify-content: center;
 
-    button {
-      background: #252525;
-      border: 1px solid #444;
-      color: #ccc;
-      padding: 8px 16px;
-      border-radius: 20px;
+    .volatility-dropdown {
+      background-color: #1e222d; // Deriv-style dark gray
+      color: #ffffff;
+      border: 1px solid #363a45;
+      padding: 12px 20px;
+      border-radius: 6px;
+      width: 300px;
+      font-size: 16px;
       cursor: pointer;
-      transition: all 0.3s ease;
+      appearance: none; // Removes default browser styling
 
-      &:hover {
-        background: #333;
+      // Force options to be visible in all browsers
+      option {
+        background-color: #1e222d;
+        color: #ffffff;
+        padding: 10px;
       }
-
-      &.active {
-        background: #3e4ed8; // Trading Blue
-        color: white;
-        border-color: #5c6cf2;
+      
+      &:focus {
+        border-color: #2962ff;
+        outline: none;
       }
     }
   }
 
-  // 2. The Digits Grid
   .stats-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr); // 5 circles per row
-    gap: 25px;
-    row-gap: 50px;
-    justify-items: center;
-
-    @media (max-width: 600px) {
-      grid-template-columns: repeat(2, 1fr); // 2 per row on mobile
+    grid-template-columns: repeat(5, 1fr); // Two rows of 5
+    gap: 40px;
+    
+    @media (max-width: 768px) {
+      grid-template-columns: repeat(2, 1fr);
     }
   }
 
@@ -54,71 +49,67 @@
     flex-direction: column;
     align-items: center;
     position: relative;
-    width: 100px;
   }
 
-  // 3. The Arrow Cursor
   .arrow-cursor {
-    font-size: 20px;
-    margin-bottom: 5px;
-    color: #ffffff;
+    height: 30px;
+    font-size: 22px;
     opacity: 0;
     transform: translateY(10px);
-    transition: all 0.2s ease-in-out;
-
+    transition: all 0.15s ease-in-out;
+    
     &.visible {
       opacity: 1;
       transform: translateY(0);
-      animation: bounce 1s infinite;
+      animation: bounce 0.8s infinite alternate;
     }
   }
 
-  // 4. The Circles
   .circle-digit {
-    width: 60px;
-    height: 60px;
+    width: 65px;
+    height: 65px;
     border-radius: 50%;
-    border: 3px solid #444;
+    border: 3px solid #2a2e39;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
-    font-weight: bold;
-    background: #1a1a1a;
-    transition: all 0.4s ease;
+    font-size: 26px;
+    font-weight: 800;
+    background: #131722;
+    transition: all 0.3s ease;
 
-    &.highlight-border {
-      box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
-    }
-
-    // Percentage Logic Colors
     &.max-green {
-      border-color: #4caf50; // Green for >= 12%
-      color: #4caf50;
-      background: rgba(76, 175, 80, 0.1);
+      border-color: #00c853;
+      color: #00c853;
+      box-shadow: 0 0 10px rgba(0, 200, 83, 0.2);
     }
 
     &.min-red {
-      border-color: #f44336; // Red for <= 8%
-      color: #f44336;
-      background: rgba(244, 67, 54, 0.1);
+      border-color: #ff5252;
+      color: #ff5252;
+      box-shadow: 0 0 10px rgba(255, 82, 82, 0.2);
+    }
+
+    &.active-glow {
+      background: #ffffff;
+      color: #000000;
+      border-color: #ffffff;
+      transform: scale(1.1);
     }
   }
 
-  // 5. Percentage Text
   .percentage-label {
-    margin-top: 10px;
+    margin-top: 15px;
+    font-family: 'Roboto Mono', monospace;
     font-size: 14px;
-    font-weight: 500;
-    color: #bbb;
-
-    &.max-green { color: #4caf50; }
-    &.min-red { color: #f44336; }
+    letter-spacing: -0.5px;
+    
+    &.max-green { color: #00c853; font-weight: bold; }
+    &.min-red { color: #ff5252; font-weight: bold; }
   }
 }
 
-// Simple bounce animation for the arrow
 @keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
+  from { transform: translateY(0); }
+  to { transform: translateY(5px); }
 }
