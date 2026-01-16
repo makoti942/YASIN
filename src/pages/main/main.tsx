@@ -37,6 +37,8 @@ const ChartWrapper = lazy(() => import('../chart/chart-wrapper'));
 const Tutorial = lazy(() => import('../tutorials'));
 const FreeBots = lazy(() => import('../free-bots'));
 const AnalysisTool = lazy(() => import('../analysis-tool'));
+const Dcircles = lazy(() => import('../dcircles'));
+const MakotiPredictor = lazy(() => import('../makoti'));
 
 const AppWrapper = observer(() => {
     const { connectionStatus } = useApiBase();
@@ -68,7 +70,7 @@ const AppWrapper = observer(() => {
     const { clear } = summary_card;
     const { DASHBOARD, BOT_BUILDER } = DBOT_TABS;
     const init_render = React.useRef(true);
-    const hash = ['dashboard', 'bot_builder', 'chart', 'tutorial', 'free_bots', 'analysis_tool'];
+    const hash = ['dashboard', 'bot_builder', 'dcircles', 'makoti', 'chart', 'tutorial', 'free_bots', 'analysis_tool'];
     const { isDesktop } = useDevice();
     const location = useLocation();
     const navigate = useNavigate();
@@ -305,6 +307,44 @@ const AppWrapper = observer(() => {
                                 }
                                 id='id-bot-builder'
                             />
+                            <div
+                                label={
+                                    <>
+                                        <LabelPairedObjectsColumnCaptionRegularIcon
+                                            height='24px'
+                                            width='24px'
+                                            fill='var(--text-general)'
+                                        />
+                                        <Localize i18n_default_text='Dcircles' />
+                                    </>
+                                }
+                                id='id-dcircles'
+                            >
+                                <div className='dcircles-wrapper'>
+                                    <Suspense fallback={<ChunkLoader message={localize('Loading Dcircles...')} />}>
+                                        <Dcircles />
+                                    </Suspense>
+                                </div>
+                            </div>
+                            <div
+                                label={
+                                    <>
+                                        <LabelPairedObjectsColumnCaptionRegularIcon
+                                            height='24px'
+                                            width='24px'
+                                            fill='var(--text-general)'
+                                        />
+                                        <Localize i18n_default_text='Makoti' />
+                                    </>
+                                }
+                                id='id-makoti'
+                            >
+                                <div className='makoti-wrapper'>
+                                    <Suspense fallback={<ChunkLoader message={localize('Loading Makoti Predictor...')} />}>
+                                        <MakotiPredictor />
+                                    </Suspense>
+                                </div>
+                            </div>
                             <div
                                 label={
                                     <>

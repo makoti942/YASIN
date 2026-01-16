@@ -1,0 +1,125 @@
+import { useState, useEffect } from 'react';
+import { runTop5Consensus } from '@/utils/strategies';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ConnectionStatus } from './ConnectionStatus';
+import { VolatilitySelector } from './VolatilitySelector';
+import { TickPanel } from './TickPanel';
+import { ArrowRight } from 'lucide-react';
+import { useTickData } from '@/contexts/TickDataContext';
+import { predictEntryPoint } from '@/utils/entryPointPredictor';
+
+interface MakotiPredictorProps {
+  onLoadToBotBuilder?: (market: string, digit: number) => void;
+}
+
+export const MakotiPredictor = ({ onLoadToBotBuilder }: MakotiPredictorProps) => {
+  const { ticks, isConnected, symbol, setSymbol } = useTickData();
+  const [predictedDigit, setPredictedDigit] = useState<number | null>(null);
+  const [confidence, setConfidence] = useState(0);
+  const [isScanning, setIsScanning] = useState(false);
+  const [status, setStatus] = useState('Ready to scan');
+
+  useEffect(() => {
+    if (ticks.length < 18) {
+      setStatus(`Gathering data... ${ticks.length}/18 ticks`);
+    } else {
+      setStatus('Ready to scan');
+    }
+  }, [ticks.length]);
+
+  const handleScan = async () => {
+    if (ticks.length < 18) {
+      setStatus('Need more ticks for analysis');
+      return;
+    }
+
+    setIsScanning(true);
+    setStatus('Analyzing patterns...');
+    await new Promise(resolve => setTimeout(resolve, 800));
+
+    const recent = ticks.slice(-100);
+    const analysisTicks = recent.length > 1 ? recent.slice(0, -1) : recent;
+
+    const topAnalysis = runTop5Consensus(analysisTicks);
+
+    if (topAnalysis.digits.length > 0) {
+      const topFive = topAnalysis.digits.slice(0, 5);
+      const entryPrediction = predictEntryPoint(analysisTicks, topFive);
+      const primaryDigit = entryPrediction.entryDigit !== null ? entryPrediction.entryDigit : topFive[0] ?? null;
+
+      if (primaryDigit !== null) {
+        setPredictedDigit(primaryDigit);
+        setConfidence(Math.min(topAnalysis.confidence * 1.1, entryPrediction.confidence * 1.05 || topAnalysis.confidence, 0.98));
+        setStatus('Prediction ready for the next 3-7 ticks.');
+      } else {
+        setPredictedDigit(null);
+        setConfidence(0);
+        setStatus('Pattern not stable, collecting more data.');
+      }
+    } else {
+      setPredictedDigit(null);
+      setConfidence(0);
+      setStatus('Collecting data to refine prediction.');
+    }
+
+    setIsScanning(false);
+  };
+
+  return (
+    <div className="space-y-6 p-6">
+      <ConnectionStatus isConnected={isConnected} />
+      <Card className="p-6 bg-card border-border">
+        <VolatilitySelector value={symbol} onChange={setSymbol} />
+      </Card>
+
+      <Card className="p-8 bg-card border-border">
+        <h2 className="text-lg font-semibold text-primary mb-4 text-center">Predicted Digit (Next 3-7 Ticks)</h2>
+        <div className="flex flex-col items-center justify-center space-y-4">
+          {isScanning ? (
+            <div className="text-6xl font-bold text-primary animate-pulse mono">...</div>
+          ) : predictedDigit !== null ? (
+            <>
+              <div className="text-8xl font-bold text-primary glow mono animate-pulse-glow">{predictedDigit}</div>
+              <div className="text-sm text-muted-foreground">Confidence: {(confidence * 100).toFixed(1)}%</div>
+              {confidence < 0.6 && <div className="text-xs text-yellow-500">Moderate confidence</div>}
+              {confidence >= 0.75 && <div className="text-xs text-green-500">High confidence</div>}
+              {onLoadToBotBuilder && (
+                <Button
+                  onClick={() => onLoadToBotBuilder(symbol, predictedDigit)}
+                  size="lg"
+                  className="w-full max-w-md mt-4 border-2 border-primary bg-primary/20 hover:bg-primary/40 text-primary hover:text-primary mono relative overflow-hidden group"
+                >
+                  <span className="relative z-10 font-bold text-lg">
+                    LOAD TO BOT <ArrowRight className="inline-block ml-2 h-5 w-5" />
+                  </span>
+                  <span className="absolute inset-0 bg-primary/30 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-300" />
+                </Button>
+              )}
+            </>
+          ) : (
+            <div className="text-2xl text-muted-foreground">Press Scan</div>
+          )}
+        </div>
+
+        <div className="mt-6 text-center">
+          <Button onClick={handleScan} disabled={isScanning || ticks.length < 18} size="lg" className="w-full max-w-md">
+            {isScanning ? 'Scanning...' : 'Scan Market'}
+          </Button>
+        </div>
+
+        <div className="mt-4 text-sm text-center text-muted-foreground">{status}</div>
+      </Card>
+
+      <TickPanel ticks={ticks.slice(-50)} />
+
+      <Card className="p-4 bg-card border-border">
+        <p className="text-xs text-muted-foreground text-center">
+          AI-powered prediction engine analyzes market patterns to forecast digits in the next 3-7 ticks.
+        </p>
+      </Card>
+    </div>
+  );
+};
+
+export default MakotiPredictor;

@@ -1,0 +1,80 @@
+.dcircles-container {
+    padding: 24px;
+    color: #fff;
+    background: var(--general-main-1);
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 16px;
+        width: 100%;
+        max-width: 800px;
+        margin-bottom: 40px;
+
+        @media (max-width: 600px) {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    .digit-card {
+        background: var(--general-section-1);
+        border: 1px solid var(--border-normal);
+        border-radius: 8px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transition: transform 0.2s;
+
+        &.active {
+            border-color: #4bb4b3;
+            box-shadow: 0 0 10px rgba(75, 180, 179, 0.3);
+            transform: scale(1.05);
+        }
+
+        .digit-label {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+
+        .bar-wrapper {
+            height: 100px;
+            width: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column-reverse;
+            overflow: hidden;
+            margin-bottom: 8px;
+
+            .bar {
+                width: 100%;
+                background: #666;
+                transition: height 0.3s ease;
+
+                &.max { background: #4bb4b3; }
+                &.min { background: #ff444f; }
+            }
+        }
+
+        .percentage {
+            font-size: 14px;
+            color: #999;
+        }
+    }
+
+    .current-display {
+        font-size: 24px;
+        .highlight {
+            color: #4bb4b3;
+            font-weight: bold;
+            font-size: 48px;
+            margin-left: 12px;
+        }
+    }
+}
