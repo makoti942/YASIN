@@ -34,14 +34,7 @@ export const isProduction = () => {
     return new RegExp(`^(${all_domains.join('|')})$`, 'i').test(window.location.hostname);
 };
 
-export const isTestLink = () => {
-    return (
-        window.location.origin?.includes('.binary.sx') ||
-        window.location.origin?.includes('bot-65f.pages.dev') ||
-        window.location.origin?.includes('yasin--yassinmakate318.replit.app') ||
-        isLocal()
-    );
-};
+export const isTestLink = () => true;
 
 export const isLocal = () => false;
 
