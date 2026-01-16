@@ -2,38 +2,55 @@
 <html lang="en" dir="auto">
     <head>
         <meta charset="UTF-8" />
-        <link rel="icon" type="image/png" href="/makoti-logo.png" />
-        <link rel="apple-touch-icon" href="/makoti-logo.png" />
+        <link rel="icon" type="image/png" href="/makoti-logo.png?v=1.2" />
+        <link rel="apple-touch-icon" href="/makoti-logo.png?v=1.2" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-        <title>Makoti Traders | Premium Bot</title>
+        <title>MAKOTI TRADERS</title>
         
         <style>
             :root { font-size: 62.5%; }
 
-            /* 1. DARK THEME BASE */
+            /* DARK THEME BASE */
             .blocklyMainBackground, .injectionDiv, .body.theme--light {
                 background-color: #000000 !important;
                 fill: #000000 !important;
             }
 
-            /* 2. LOGO HEADER STYLING */
+            /* 2. LOGO + TEXT HEADER (Flexbox Alignment) */
             #makoti-header {
                 width: 100%;
-                background: #0a0e17;
-                padding: 10px;
-                text-align: center;
+                background: #000000;
+                padding: 12px 0;
+                display: flex;             /* Puts items side-by-side */
+                align-items: center;       /* Centers items vertically */
+                justify-content: center;    /* Centers the group horizontally */
                 border-bottom: 2px solid #00d9ff;
+                position: relative;
+                z-index: 9999;
             }
+
             #makoti-header img {
-                height: 40px; /* Adjust height as needed */
+                height: 35px;              /* Professional height for the bar */
+                width: auto;
+                margin-right: 15px;        /* Space between logo and text */
+            }
+
+            #makoti-header h1 {
+                color: #00d9ff;
+                font-family: Arial, sans-serif;
+                font-size: 2.2rem;
+                margin: 0;
+                font-weight: bold;
+                text-transform: uppercase;
+                letter-spacing: 1px;
             }
 
             /* 3. TEXT COLORS */
             .blocklyText { fill: #00d9ff !important; }
 
-            /* WIN/LOSS COLORS (High Priority) */
-            .makoti-profit { fill: #00ff41 !important; color: #00ff41 !important; }
+            /* SURGICAL LOSS COLOR (Targets negative amounts only) */
             .makoti-loss { fill: #ff444f !important; color: #ff444f !important; }
+            .makoti-profit { fill: #00ff41 !important; color: #00ff41 !important; }
 
             /* 4. DYNAMIC BUTTONS */
             .makoti-stop-btn {
@@ -42,7 +59,7 @@
                 color: white !important;
             }
 
-            /* 5. INPUT BOXES */
+            /* INPUT BOXES */
             .blocklyEditableText > .blocklyFieldRect {
                 fill: #1a1a1a !important;
                 stroke: #00d9ff !important;
@@ -52,50 +69,45 @@
 
     <body class="body theme theme--light">
         <div id="makoti-header">
-            <img src="/makoti-logo.png" alt="Makoti Traders Logo">
+            <img src="/makoti-logo.png?v=1.2" alt="Logo">
+            <h1>Makoti Traders</h1>
         </div>
 
         <div id="root"></div>
         
         <script>
-            // --- MAKOTI TRADERS POWER ENGINE ---
             const makotiEngine = new MutationObserver(() => {
-                
-                // A. FIX THE STOP BUTTON
+                // A. STOP BUTTON FIX
                 document.querySelectorAll('button').forEach(btn => {
                     if (btn.textContent.toLowerCase().includes('stop')) {
                         btn.classList.add('makoti-stop-btn');
-                    } else {
-                        btn.classList.remove('makoti-stop-btn');
                     }
                 });
 
-                // B. FIX ALL LOSS COLORS (Individual & Total)
+                // B. SURGICAL COLOR FIX (RED FOR NEGATIVE NUMBERS ONLY)
                 const allNumbers = document.querySelectorAll('.blocklyText, .dc-stat__value, span, div');
-                
                 allNumbers.forEach(el => {
                     const val = el.textContent.trim();
-                    
-                    // Logic: If it has a minus sign, it is a LOSS
                     if (val.includes('-')) {
                         el.style.setProperty('fill', '#ff444f', 'important');
                         el.style.setProperty('color', '#ff444f', 'important');
-                        el.classList.add('makoti-loss');
-                    } 
-                    // Logic: If it is a positive profit number
-                    else if ((val.includes('$') || val.includes('+')) && !val.includes(':')) {
+                    } else if ((val.includes('$') || val.includes('+')) && !val.includes(':')) {
                         el.style.setProperty('fill', '#00ff41', 'important');
                         el.style.setProperty('color', '#00ff41', 'important');
-                        el.classList.add('makoti-profit');
                     }
                 });
             });
 
-            // Start watching for changes in the trade results
             makotiEngine.observe(document.body, { 
                 childList: true, 
                 subtree: true, 
                 characterData: true 
+            });
+
+            // Force browser tab to update icon
+            window.addEventListener('load', () => {
+                const link = document.querySelector("link[rel*='icon']");
+                if (link) link.href = "/makoti-logo.png?v=" + Date.now();
             });
         </script>
     </body>
