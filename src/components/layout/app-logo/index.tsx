@@ -1,4 +1,3 @@
-import React from 'react';
 import './app-logo.scss';
 
 export const AppLogo = () => {
