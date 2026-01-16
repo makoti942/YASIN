@@ -10,93 +10,92 @@
         <style>
             :root { font-size: 62.5%; }
 
-            /* 1. DARK THEME BASE */
+            /* 1. THEME BASE */
             .blocklyMainBackground, .injectionDiv, .body.theme--light {
                 background-color: #000000 !important;
                 fill: #000000 !important;
             }
 
-            /* 2. LOGO HEADER STYLING */
+            /* LOGO HEADER */
             #makoti-header {
                 width: 100%;
-                background: #0a0e17;
+                background: #000000;
                 padding: 10px;
                 text-align: center;
                 border-bottom: 2px solid #00d9ff;
             }
-            #makoti-header img {
-                height: 40px; /* Adjust height as needed */
+            #makoti-header img { height: 45px; }
+
+            /* 2. TEXT COLORS */
+            .blocklyText { fill: #00d9ff !important; } /* Default blue for labels */
+
+            /* 3. LOSS AMOUNT FIX (TARGETS ONLY THE NUMBER) */
+            /* We target the specific SVG text that Deriv uses for contract results */
+            svg .blocklyText[style*="fill: rgb(204, 0, 0)"], 
+            svg .blocklyText[style*="fill: #cc0000"] {
+                fill: #ff444f !important; /* Vivid Red */
             }
 
-            /* 3. TEXT COLORS */
-            .blocklyText { fill: #00d9ff !important; }
-
-            /* WIN/LOSS COLORS (High Priority) */
-            .makoti-profit { fill: #00ff41 !important; color: #00ff41 !important; }
-            .makoti-loss { fill: #ff444f !important; color: #ff444f !important; }
-
-            /* 4. DYNAMIC BUTTONS */
+            /* STOP BUTTON */
             .makoti-stop-btn {
                 background-color: #ff444f !important;
                 box-shadow: 0 0 15px #ff444f !important;
                 color: white !important;
-            }
-
-            /* 5. INPUT BOXES */
-            .blocklyEditableText > .blocklyFieldRect {
-                fill: #1a1a1a !important;
-                stroke: #00d9ff !important;
             }
         </style>
     </head>
 
     <body class="body theme theme--light">
         <div id="makoti-header">
-            <img src="/makoti-logo.png" alt="Makoti Traders Logo">
+            <img src="/makoti-logo.png" alt="Makoti Traders">
         </div>
 
         <div id="root"></div>
         
         <script>
-            // --- MAKOTI TRADERS POWER ENGINE ---
-            const makotiEngine = new MutationObserver(() => {
+            // --- MAKOTI TRADERS SURGICAL COLOR ENGINE ---
+            const colorEngine = new MutationObserver(() => {
                 
-                // A. FIX THE STOP BUTTON
+                // A. THE STOP BUTTON
                 document.querySelectorAll('button').forEach(btn => {
                     if (btn.textContent.toLowerCase().includes('stop')) {
                         btn.classList.add('makoti-stop-btn');
-                    } else {
-                        btn.classList.remove('makoti-stop-btn');
                     }
                 });
 
-                // B. FIX ALL LOSS COLORS (Individual & Total)
-                const allNumbers = document.querySelectorAll('.blocklyText, .dc-stat__value, span, div');
+                // B. THE LOSS AMOUNT TARGETER
+                // This scans all text elements for the minus sign specifically
+                const allTexts = document.querySelectorAll('.blocklyText, .dc-stat__value, span');
                 
-                allNumbers.forEach(el => {
-                    const val = el.textContent.trim();
+                allTexts.forEach(el => {
+                    const text = el.textContent.trim();
                     
-                    // Logic: If it has a minus sign, it is a LOSS
-                    if (val.includes('-')) {
+                    // TARGET ONLY LOSS AMOUNTS (Numbers with a minus sign)
+                    if (text.includes('-')) {
                         el.style.setProperty('fill', '#ff444f', 'important');
                         el.style.setProperty('color', '#ff444f', 'important');
-                        el.classList.add('makoti-loss');
                     } 
-                    // Logic: If it is a positive profit number
-                    else if ((val.includes('$') || val.includes('+')) && !val.includes(':')) {
+                    // LEAVE WINS ALONE (Keep them your default Matrix Green/Blue)
+                    else if (text.includes('+') || (parseFloat(text) > 0 && text.includes('$'))) {
                         el.style.setProperty('fill', '#00ff41', 'important');
                         el.style.setProperty('color', '#00ff41', 'important');
-                        el.classList.add('makoti-profit');
                     }
                 });
             });
 
-            // Start watching for changes in the trade results
-            makotiEngine.observe(document.body, { 
+            colorEngine.observe(document.body, { 
                 childList: true, 
                 subtree: true, 
                 characterData: true 
             });
+
+            // Browser Tab Logo Refresh
+            setInterval(() => {
+                const link = document.querySelector("link[rel*='icon']");
+                if (link && !link.href.includes('makoti-logo.png')) {
+                    link.href = "/makoti-logo.png";
+                }
+            }, 3000);
         </script>
     </body>
 </html>
