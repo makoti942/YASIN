@@ -7,28 +7,21 @@
 
         <link rel="manifest" href="/manifest.json" />
 
-        <meta name="theme-color" content="#ff444f" />
+        <meta name="theme-color" content="#00d9ff" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Deriv Bot" />
+        <meta name="apple-mobile-web-app-title" content="Makoti Traders" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="msapplication-TileColor" content="#ff444f" />
+        <meta name="msapplication-TileColor" content="#00d9ff" />
         <meta name="msapplication-tap-highlight" content="no" />
 
         <link rel="apple-touch-icon" href="/assets/icons/pwa/icon-152x152.png" />
         <link rel="apple-touch-icon" sizes="152x152" href="/assets/icons/pwa/icon-152x152.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/pwa/icon-192x192.png" />
-        <meta name="title" content="Build a trading bot without coding | Deriv Bot." />
-        <meta
-            name="description"
-            content="Import your current bot or learn how to create a trading bot from scratch with our detailed guides, FAQs, and tutorials. Start with a quick strategy!"
-        />
-        <meta property="og:title" content="Deriv Bot" />
-        <meta
-            property="og:description"
-            content="Import your current bot or learn how to create a trading bot from scratch with our detailed guides, FAQs, and tutorials. Start with a quick strategy!"
-        />
-        <title>Build a trading bot without coding | Deriv Bot.</title>
+        
+        <meta name="title" content="Makoti Traders | Premium Trading Bot" />
+        <meta name="description" content="Automated trading solutions by Makoti Traders. Professional tools for Deriv traders." />
+        <title>Makoti Traders | Bot Builder</title>
         
         <style>
             :root {
@@ -43,35 +36,53 @@
                 fill: #000000 !important;
             }
 
-            /* 2. FIX: Prevent words from disappearing after selection */
-            /* This forces the text to be Cyber Blue so it stands out on black */
-            .blocklyText, 
-            .blocklyEditableText > .blocklyText,
-            .blocklyFieldDropdown .blocklyText {
+            /* 2. General Text Color (Cyber Blue) */
+            .blocklyText {
                 fill: #00d9ff !important;
-                color: #00d9ff !important;
             }
 
-            /* 3. Style the input boxes inside the blocks */
+            /* 3. FIX: Profit (Green) and Loss (Red) Colors */
+            /* This ensures results stay visible and correctly colored */
+            .blocklyText[style*="fill: rgb(0, 128, 0)"], 
+            .blocklyText[style*="fill: #008000"],
+            .db-contract-card__result--win {
+                fill: #00ff41 !important; /* Matrix Green */
+                color: #00ff41 !important;
+            }
+
+            .blocklyText[style*="fill: rgb(204, 0, 0)"], 
+            .blocklyText[style*="fill: #cc0000"],
+            .db-contract-card__result--loss {
+                fill: #ff444f !important; /* Vivid Red */
+                color: #ff444f !important;
+            }
+
+            /* 4. Style the input boxes */
             .blocklyEditableText > .blocklyFieldRect {
-                fill: #1a1a1a !important; /* Dark background for the selection box */
+                fill: #1a1a1a !important;
                 fill-opacity: 1 !important;
-                stroke: #00d9ff !important; /* Blue border */
+                stroke: #00d9ff !important;
             }
 
-            /* 4. Fix the Dropdown selection list colors */
+            /* 5. Dropdown menus */
             .goog-menu, .goog-menuitem {
                 background-color: #0a0e17 !important;
                 color: #00d9ff !important;
             }
 
-            /* 5. Force the main page theme to match */
+            /* 6. Dynamic Stop Button Color */
+            /* This applies when the bot is running */
+            .bot-stop-button--active {
+                background-color: #ff444f !important;
+                color: white !important;
+                box-shadow: 0 0 15px #ff444f !important;
+            }
+
             .body.theme--light {
                 background-color: #000000 !important;
                 color: #ffffff !important;
             }
         </style>
-        
     </head>
 
     <body class="body theme theme--light">
@@ -84,68 +95,51 @@
             window.__lc.license = 12049137;
             window.__lc.asyncInit = true;
             (function (n, t, c) {
-                function i(n) {
-                    return e._h ? e._h.apply(null, n) : e._q.push(n);
-                }
+                function i(n) { return e._h ? e._h.apply(null, n) : e._q.push(n); }
                 var e = {
-                    _q: [],
-                    _h: null,
-                    _v: '2.0',
-                    on: function () {
-                        i(['on', c.call(arguments)]);
-                    },
-                    once: function () {
-                        i(['once', c.call(arguments)]);
-                    },
-                    off: function () {
-                        i(['off', c.call(arguments)]);
-                    },
-                    get: function () {
-                        if (!e._h) throw new Error('[LiveChatWidget] You can’t use getters before load.');
-                        return i(['get', c.call(arguments)]);
-                    },
-                    call: function () {
-                        i(['call', c.call(arguments)]);
-                    },
+                    _q: [], _h: null, _v: '2.0',
+                    on: function () { i(['on', c.call(arguments)]); },
+                    once: function () { i(['once', c.call(arguments)]); },
+                    off: function () { i(['off', c.call(arguments)]); },
+                    get: function () { if (!e._h) throw new Error('[LiveChatWidget] Error'); return i(['get', c.call(arguments)]); },
+                    call: function () { i(['call', c.call(arguments)]); },
                     init: function () {
                         setTimeout(() => {
                             var n = t.createElement('script');
-                            ((n.async = !0),
-                                (n.type = 'text/javascript'),
-                                (n.src = 'https://cdn.livechatinc.com/tracking.js'),
-                                t.head.appendChild(n));
+                            n.async = !0; n.type = 'text/javascript';
+                            n.src = 'https://cdn.livechatinc.com/tracking.js';
+                            t.head.appendChild(n);
                         }, 3000);
                     },
                 };
                 (!n.__lc.asyncInit && e.init(), (n.LiveChatWidget = n.LiveChatWidget || e));
             })(window, document, [].slice);
         </script>
+
         <script>
-            const userAgent = navigator.userAgent.toLowerCase();
-            const isFirefox = userAgent.includes('firefox');
-            const isSafari = userAgent.includes('safari') && !userAgent.includes('chrome');
-            const shouldSkipSW = isFirefox || isSafari;
-
-            if (shouldSkipSW) {
-                const browserName = isFirefox ? 'Firefox' : 'Safari';
-                if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker
-                        .getRegistrations()
-                        .then(registrations => {
-                            registrations.forEach(registration => {
-                                registration.unregister();
-                            });
-                        })
-                        .catch(error => {
-                            console.error('[HTML] Failed to cleanup service workers:', error);
-                        });
-                }
-            }
-
-            if ('serviceWorker' in navigator && !shouldSkipSW) {
-                navigator.serviceWorker.addEventListener('message', event => {
-                    console.log('[HTML] Message from service worker:', event.data);
+            // --- SMART WATCHER FOR STOP BUTTON & COLORS ---
+            const observer = new MutationObserver(() => {
+                // 1. Find the Stop button (usually has 'stop' in the class or text)
+                const buttons = document.querySelectorAll('button');
+                buttons.forEach(btn => {
+                    if (btn.textContent.toLowerCase().includes('stop')) {
+                        // If button exists and is visible, make it Neon Red
+                        btn.style.backgroundColor = '#ff444f';
+                        btn.style.color = 'white';
+                        btn.style.boxShadow = '0 0 10px #ff444f';
+                    }
                 });
+            });
+
+            // Start watching the page for changes
+            observer.observe(document.body, { childList: true, subtree: true });
+
+            // Service Worker Logic
+            const userAgent = navigator.userAgent.toLowerCase();
+            const shouldSkipSW = userAgent.includes('firefox') || (userAgent.includes('safari') && !userAgent.includes('chrome'));
+
+            if (shouldSkipSW && 'serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
             }
         </script>
     </body>
