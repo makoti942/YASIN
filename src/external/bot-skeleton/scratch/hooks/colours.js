@@ -13,7 +13,7 @@ const lightMode = () => {
     };
 
     workspace.Colours.Special1 = {
-        colour: '#e5e5e5',
+        colour: '#0e0e0e',
         colourSecondary: '#ffffff',
         colourTertiary: '#6d7278',
     };
