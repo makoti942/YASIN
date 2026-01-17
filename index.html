@@ -5,12 +5,76 @@
         <link rel="icon" type="image/png" href="/makoti-logo.png?v=1.2" />
         <link rel="apple-touch-icon" href="/makoti-logo.png?v=1.2" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-        <title>.</title>
+        <title>MAKOTI TRADERS</title>
         
         <style>
             :root { font-size: 62.5%; }
 
-            /* DARK THEME BASE */
+            /* 1. WELCOME SCREEN (SPLASH) STYLING */
+            #welcome-screen {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: #000000;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                z-index: 100000; /* Highest priority */
+                transition: opacity 0.8s ease, visibility 0.8s;
+            }
+
+            #welcome-screen.fade-out {
+                opacity: 0;
+                visibility: hidden;
+            }
+
+            .welcome-logo {
+                width: 130px;
+                height: auto;
+                margin-bottom: 25px;
+                animation: pulseLogo 2s infinite ease-in-out;
+            }
+
+            .welcome-text {
+                color: #00d9ff;
+                font-family: Arial, sans-serif;
+                font-size: 2.6rem;
+                font-weight: bold;
+                text-transform: uppercase;
+                letter-spacing: 4px;
+                margin-bottom: 35px;
+            }
+
+            /* Loading Circle */
+            .loader {
+                width: 50px;
+                height: 50px;
+                border: 3px solid #1a1a1a;
+                border-radius: 50%;
+                display: inline-block;
+                position: relative;
+                animation: rotation 1s linear infinite;
+            }
+            .loader::after {
+                content: '';  
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                width: 42px;
+                height: 42px;
+                border-radius: 50%;
+                border: 3px solid transparent;
+                border-bottom-color: #00d9ff;
+            }
+
+            @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+            @keyframes pulseLogo { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+
+            /* 2. MAIN SITE THEME */
             .blocklyMainBackground, .injectionDiv, .body.theme--light {
                 background-color: #000000 !important;
                 fill: #000000 !important;
@@ -28,16 +92,6 @@
                 z-index: 9999;
             }
 
-            .header, .header__menu, .header__nav, .traders-hub-header, .cashier-header, .reports-header {
-                display: none !important;
-            }
-
-            #makoti-header img {
-                height: 35px;
-                width: auto;
-                margin-right: 15px;
-            }
-
             #makoti-header h1 {
                 color: #00d9ff;
                 font-family: Arial, sans-serif;
@@ -45,22 +99,14 @@
                 margin: 0;
                 font-weight: bold;
                 text-transform: uppercase;
-                letter-spacing: 1px;
             }
 
-            /* 1. CSS FIX: Force labels to Black */
-            .blocklyText { 
-                fill: #000000 !important; 
-            }
+            /* LABEL COLOR FIX */
+            .blocklyText { fill: #000000 !important; }
 
-            .makoti-loss, .loss, .dc-stat__value--loss, .blocklyText.loss { 
-                fill: #ff444f !important; 
-                color: #ff444f !important; 
-            }
-            .makoti-profit, .profit, .dc-stat__value--profit, .blocklyText.profit { 
-                fill: #4bb4b3 !important; 
-                color: #4bb4b3 !important; 
-            }
+            /* SURGICAL COLORS */
+            .makoti-loss, .loss { fill: #ff444f !important; color: #ff444f !important; }
+            .makoti-profit, .profit { fill: #00ff41 !important; color: #00ff41 !important; }
 
             .makoti-stop-btn {
                 background-color: #ff444f !important;
@@ -76,49 +122,54 @@
     </head>
 
     <body class="body theme theme--light">
+        
+        <div id="welcome-screen">
+            <img src="/makoti-logo.png?v=1.2" alt="Logo" class="welcome-logo">
+            <div class="welcome-text">Makoti Traders</div>
+            <span class="loader"></span>
+        </div>
+
         <div id="makoti-header">
-            <img src="/makoti-logo.png?v=1.2" alt="Logo">
-            <h1>MAKOTI TRADERS</h1>
+            <img src="/makoti-logo.png?v=1.2" alt="Logo" style="height:35px; margin-right:15px;">
+            <h1>Makoti</h1>
         </div>
 
         <div id="root"></div>
         
         <script>
+            // Handle Welcome Screen removal
+            window.addEventListener('load', () => {
+                const splash = document.getElementById('welcome-screen');
+                setTimeout(() => {
+                    splash.classList.add('fade-out');
+                }, 2500); // Shows for 2.5 seconds
+            });
+
             const makotiEngine = new MutationObserver(() => {
+                // Button coloring
                 document.querySelectorAll('button').forEach(btn => {
                     if (btn.textContent.toLowerCase().includes('stop')) {
                         btn.classList.add('makoti-stop-btn');
                     }
                 });
 
+                // Text coloring logic
                 const allNumbers = document.querySelectorAll('.blocklyText, .dc-stat__value, span, div');
                 allNumbers.forEach(el => {
                     const val = el.textContent.trim();
-                    
                     if (val.includes('-')) {
                         el.style.setProperty('fill', '#ff444f', 'important');
                         el.style.setProperty('color', '#ff444f', 'important');
                     } else if ((val.includes('$') || val.includes('+')) && !val.includes(':')) {
                         el.style.setProperty('fill', '#00ff41', 'important');
                         el.style.setProperty('color', '#00ff41', 'important');
-                    } 
-                    /* 2. SCRIPT FIX: If it's a label (no math signs), force it to BLACK */
-                    else if (el.classList.contains('blocklyText') && !el.closest('.blocklyEditableText')) {
+                    } else if (el.classList.contains('blocklyText') && !el.closest('.blocklyEditableText')) {
                         el.style.setProperty('fill', '#000000', 'important');
                     }
                 });
             });
 
-            makotiEngine.observe(document.body, { 
-                childList: true, 
-                subtree: true, 
-                characterData: true 
-            });
-
-            window.addEventListener('load', () => {
-                const link = document.querySelector("link[rel*='icon']");
-                if (link) link.href = "/makoti-logo.png?v=" + Date.now();
-            });
+            makotiEngine.observe(document.body, { childList: true, subtree: true, characterData: true });
         </script>
     </body>
 </html>
