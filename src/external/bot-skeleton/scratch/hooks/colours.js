@@ -37,4 +37,49 @@ const lightMode = () => {
     };
 };
 
-export const setColors = () => lightMode();
+const darkMode = () => {
+    const workspace = Blockly;
+    workspace.Colours.RootBlock = {
+        colour: '#064e72',
+        colourSecondary: '#064e72',
+        colourTertiary: '#6d7278',
+    };
+
+    workspace.Colours.Base = {
+        colour: '#2e2e2e',
+        colourSecondary: '#3c3c3c',
+        colourTertiary: '#6d7278',
+    };
+
+    workspace.Colours.Special1 = {
+        colour: '#2e2e2e',
+        colourSecondary: '#3c3c3c',
+        colourTertiary: '#6d7278',
+    };
+
+    workspace.Colours.Special2 = {
+        colour: '#2e2e2e',
+        colourSecondary: '#3c3c3c',
+        colourTertiary: '#6d7278',
+    };
+
+    workspace.Colours.Special3 = {
+        colour: '#2e2e2e',
+        colourSecondary: '#3c3c3c',
+        colourTertiary: '#6d7278',
+    };
+
+    workspace.Colours.Special4 = {
+        colour: '#2e2e2e',
+        colourSecondary: '#3c3c3c',
+        colourTertiary: '#6d7278',
+    };
+};
+
+export const setColors = isDarkMode => {
+    if (isDarkMode) {
+        darkMode();
+    } else {
+        lightMode();
+    }
+};

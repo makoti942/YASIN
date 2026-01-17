@@ -42,7 +42,7 @@ const RenderAccountItems = ({
     useEffect(() => {
         // Update the max-height from the accordion content set from deriv-com/ui
         const parent_container = document.getElementsByClassName('account-switcher-panel')?.[0] as HTMLDivElement;
-        if (!isVirtual && parent_container) {
+        if (parent_container) {
             parent_container.style.maxHeight = '70vh';
             waitForDomElement('.deriv-accordion__content', parent_container)?.then((accordionElement: unknown) => {
                 const element = accordionElement as HTMLDivElement;
