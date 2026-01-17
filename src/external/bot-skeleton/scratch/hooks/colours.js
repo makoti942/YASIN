@@ -74,6 +74,26 @@ const darkMode = () => {
         colourSecondary: '#3c3c3c',
         colourTertiary: '#6d7278',
     };
+    workspace.Colours.Logic = {
+        colour: '#2e2e2e',
+        colourSecondary: '#3c3c3c',
+        colourTertiary: '#6d7278',
+    };
+    workspace.Colours.Loop = {
+        colour: '#2e2e2e',
+        colourSecondary: '#3c3c3c',
+        colourTertiary: '#6d7278',
+    };
+    workspace.Colours.text = {
+        colour: '#2e2e2e',
+        colourSecondary: '#3c3c3c',
+        colourTertiary: '#6d7278',
+    };
+    workspace.Colours.Math = {
+        colour: '#2e2e2e',
+        colourSecondary: '#3c3c3c',
+        colourTertiary: '#6d7278',
+    };
 };
 
 export const setColors = isDarkMode => {
