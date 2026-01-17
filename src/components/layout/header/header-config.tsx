@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { standalone_routes } from '@/components/shared';
 import {
-    LegacyAnalyticsIcon as AnalyticsLogo,
+    LegacyChartsIcon as AnalyticsLogo,
     LegacyDerivIcon as RobotLogo,
     LegacyHomeNewIcon as TradershubLogo,
 } from '@deriv/quill-icons/Legacy';
