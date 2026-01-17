@@ -18,10 +18,10 @@ const Dcircles = () => {
 
     useEffect(() => {
         // Attempt to find the global websocket or use the one from Deriv API
-        const ws = (window as any).ws || (window as any).derivWS || (window as any).DerivAPI?.api?.connection; 
+        const ws = (window as any).ws || (window as any).derivWS || (window as any).DerivAPI?.api?.connection || (window as any).api_base?.api?.connection; 
 
-        if (!ws) {
-            console.warn('Deriv WebSocket not found, falling back to mock.');
+        if (!ws || (ws.readyState !== 1 && ws.readyState !== 0)) {
+            console.warn('Deriv WebSocket not found or closed, falling back to mock.');
             const interval = setInterval(() => {
                 const nextDigit = Math.floor(Math.random() * 10);
                 setCurrentDigit(nextDigit);

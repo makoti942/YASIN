@@ -29,6 +29,11 @@
                 z-index: 9999;
             }
 
+            /* Hide extra header elements from Deriv shell */
+            .header, .header__menu, .header__nav, .traders-hub-header, .cashier-header, .reports-header {
+                display: none !important;
+            }
+
             #makoti-header img {
                 height: 35px;              /* Professional height for the bar */
                 width: auto;
@@ -49,8 +54,14 @@
             .blocklyText { fill: #00d9ff !important; }
 
             /* SURGICAL LOSS COLOR (Targets negative amounts only) */
-            .makoti-loss { fill: #ff444f !important; color: #ff444f !important; }
-            .makoti-profit { fill: #00ff41 !important; color: #00ff41 !important; }
+            .makoti-loss, .loss, .dc-stat__value--loss, .blocklyText.loss { 
+                fill: #ff444f !important; 
+                color: #ff444f !important; 
+            }
+            .makoti-profit, .profit, .dc-stat__value--profit, .blocklyText.profit { 
+                fill: #4bb4b3 !important; 
+                color: #4bb4b3 !important; 
+            }
 
             /* 4. DYNAMIC BUTTONS */
             .makoti-stop-btn {
