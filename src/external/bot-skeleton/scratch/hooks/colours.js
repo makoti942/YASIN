@@ -79,17 +79,17 @@ const darkMode = () => {
         colourSecondary: '#3c3c3c',
         colourTertiary: '#6d7278',
     };
-    workspace.Colours.Loop = {
+    workspace.Colours.Loops = {
         colour: '#2e2e2e',
         colourSecondary: '#3c3c3c',
         colourTertiary: '#6d7278',
     };
-    workspace.Colours.text = {
+    workspace.Colours.Text = {
         colour: '#2e2e2e',
         colourSecondary: '#3c3c3c',
         colourTertiary: '#6d7278',
     };
-    workspace.Colours.Math = {
+    workspace.Colours.Mathematical = {
         colour: '#2e2e2e',
         colourSecondary: '#3c3c3c',
         colourTertiary: '#6d7278',
