@@ -29,6 +29,17 @@ $colour_toolboxSelected: $black;
         fill: #000 !important;
     }
 
+    /* Profit/Loss Colors */
+    .blocklyText.profit, .dc-stat__value.profit {
+        fill: #4bb4b3 !important;
+        color: #4bb4b3 !important;
+    }
+
+    .blocklyText.loss, .dc-stat__value.loss {
+        fill: #ff444f !important;
+        color: #ff444f !important;
+    }
+
     .flyout rect.blocklyFieldRect.blocklyDropdownRect,
     .flyout .zelos-renderer.classic-theme .blocklyMainBackground {
         fill: #151816 !important;

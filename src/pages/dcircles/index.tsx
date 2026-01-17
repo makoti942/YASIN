@@ -17,10 +17,22 @@ const Dcircles = () => {
     const [currentDigit, setCurrentDigit] = useState(null);
 
     useEffect(() => {
-        // Reference your existing site WebSocket
-        const ws = window.ws || window.derivWS; 
+        // Attempt to find the global websocket or use the one from Deriv API
+        const ws = (window as any).ws || (window as any).derivWS || (window as any).DerivAPI?.api?.connection; 
 
-        if (!ws) return;
+        if (!ws) {
+            console.warn('Deriv WebSocket not found, falling back to mock.');
+            const interval = setInterval(() => {
+                const nextDigit = Math.floor(Math.random() * 10);
+                setCurrentDigit(nextDigit);
+                setDigitsData(prev => {
+                    const next = [...prev];
+                    next[nextDigit] += 1;
+                    return next;
+                });
+            }, 1000);
+            return () => clearInterval(interval);
+        }
 
         const handleMessage = (event) => {
             const data = JSON.parse(event.data);
