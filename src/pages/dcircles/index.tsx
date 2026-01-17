@@ -1,85 +1,88 @@
-import React, { useEffect, useMemo,useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import './dcircles.scss';
 
 const volatilities = [
     { id: 'R_10', name: 'Volatility 10 Index' },
-    { id: '1HZ10V', name: 'Volatility 10 (1s) Index' },
     { id: 'R_25', name: 'Volatility 25 Index' },
-    { id: '1HZ25V', name: 'Volatility 25 (1s) Index' },
     { id: 'R_50', name: 'Volatility 50 Index' },
+    { id: 'R_75', name: 'Volatility 75 Index' },
     { id: 'R_100', name: 'Volatility 100 Index' },
+    { id: '1HZ10V', name: 'Volatility 10 (1s) Index' },
+    { id: '1HZ25V', name: 'Volatility 25 (1s) Index' },
+    { id: '1HZ50V', name: 'Volatility 50 (1s) Index' },
+    { id: '1HZ75V', name: 'Volatility 75 (1s) Index' },
     { id: '1HZ100V', name: 'Volatility 100 (1s) Index' },
+    { id: '1HZ150V', name: 'Volatility 150 (1s) Index' },
+    { id: '1HZ200V', name: 'Volatility 200 (1s) Index' },
+    { id: '1HZ250V', name: 'Volatility 250 (1s) Index' },
+    { id: '1HZ300V', name: 'Volatility 300 (1s) Index' },
 ];
 
 const Dcircles = () => {
-    const [volatility, setVolatility] = useState('1HZ10V');
+    const [volatility, setVolatility] = useState(() => {
+        return localStorage.getItem('selectedVolatility') || '1HZ10V';
+    });
     const [digitsBuffer, setDigitsBuffer] = useState<number[]>([]);
     const [currentDigit, setCurrentDigit] = useState<number | null>(null);
+    const ws = useRef<WebSocket | null>(null);
+    const subscriptionId = useRef<string | null>(null);
 
     useEffect(() => {
-        const ws =
-            (window as any).ws ||
-            (window as any).derivWS ||
-            (window as any).DerivAPI?.api?.connection ||
-            (window as any).api_base?.api?.connection;
+        localStorage.setItem('selectedVolatility', volatility);
 
-        if (!ws || (ws.readyState !== 1 && ws.readyState !== 0)) {
-            console.warn('Deriv WebSocket not found or closed, falling back to mock.');
-            const interval = setInterval(() => {
-                const nextDigit = Math.floor(Math.random() * 10);
-                setCurrentDigit(nextDigit);
-                setDigitsBuffer(prev => {
-                    const next = [...prev, nextDigit];
-                    if (next.length > 100) return next.slice(-100);
-                    return next;
-                });
-            }, 1000);
-            return () => clearInterval(interval);
-        }
+        ws.current = new WebSocket('wss://ws.derivws.com/websockets/v3?app_id=101585');
+        const websocket = ws.current;
 
-        const handleMessage = (event: MessageEvent) => {
+        websocket.onopen = () => {
+            websocket.send(JSON.stringify({ ticks: volatility, subscribe: 1 }));
+        };
+
+        websocket.onmessage = (event: MessageEvent) => {
             const data = JSON.parse(event.data);
-            if (data.msg_type === 'tick' && data.tick.symbol === volatility) {
-                const quote = data.tick.quote.toString();
-                const lastDigit = parseInt(quote.slice(-1));
 
-                setDigitsBuffer(prev => {
-                    const next = [...prev, lastDigit];
-                    if (next.length > 100) {
-                        setCurrentDigit(lastDigit);
-                        return next.slice(-100);
-                    }
+            if (data.error) {
+                console.error('WebSocket error:', data.error.message);
+                return;
+            }
+
+            if (data.msg_type === 'tick') {
+                if (data.subscription) {
+                    subscriptionId.current = data.subscription.id;
+                }
+
+                if (data.tick && typeof data.tick.quote === 'number') {
+                    const quote = String(data.tick.quote);
+                    const lastDigit = parseInt(quote.slice(-1), 10);
+
                     setCurrentDigit(lastDigit);
-                    return next;
-                });
+                    setDigitsBuffer(prev => {
+                        const newBuffer = [...prev, lastDigit];
+                        return newBuffer.length > 50 ? newBuffer.slice(-50) : newBuffer;
+                    });
+                }
             }
         };
 
-        if (ws.readyState === 1) {
-            ws.send(JSON.stringify({ ticks: volatility, subscribe: 1 }));
-        }
-
-        ws.addEventListener('message', handleMessage);
-
         return () => {
-            ws.removeEventListener('message', handleMessage);
-            if (ws.readyState === 1) {
-                ws.send(JSON.stringify({ forget_all: 'ticks' }));
+            if (websocket && websocket.readyState === WebSocket.OPEN) {
+                if (subscriptionId.current) {
+                    websocket.send(JSON.stringify({ forget: subscriptionId.current }));
+                }
+                websocket.close();
             }
         };
     }, [volatility]);
 
     const stats = useMemo(() => {
-        if (digitsBuffer.length < 100) return Array(10).fill(0);
-
         const counts = Array(10).fill(0);
         digitsBuffer.forEach(d => counts[d]++);
-
-        return counts.map(count => (count / digitsBuffer.length) * 100);
+        const total = digitsBuffer.length;
+        return total === 0 ? Array(10).fill(0) : counts.map(count => (count / total) * 100);
     }, [digitsBuffer]);
-
-    const maxVal = Math.max(...stats);
-    const minVal = Math.min(...stats);
+    
+    const areAllStatsSame = stats.every(val => val === stats[0]);
+    const maxVal = areAllStatsSame ? -1 : Math.max(...stats);
+    const minVal = areAllStatsSame ? -1 : Math.min(...stats);
 
     return (
         <div className='dcircles-container'>
@@ -87,11 +90,7 @@ const Dcircles = () => {
                 <select
                     className='deriv-dropdown'
                     value={volatility}
-                    onChange={e => {
-                        setVolatility(e.target.value);
-                        setDigitsBuffer([]);
-                        setCurrentDigit(null);
-                    }}
+                    onChange={e => setVolatility(e.target.value)}
                 >
                     {volatilities.map(v => (
                         <option key={v.id} value={v.id}>
@@ -103,9 +102,9 @@ const Dcircles = () => {
 
             <div className='circles-layout'>
                 {stats.map((percentage, digit) => {
-                    let colorClass = '';
-                    if (percentage === maxVal && maxVal !== minVal) colorClass = 'is-most';
-                    else if (percentage === minVal && maxVal !== minVal) colorClass = 'is-least';
+                    const isMax = !areAllStatsSame && percentage === maxVal;
+                    const isMin = !areAllStatsSame && percentage === minVal;
+                    const colorClass = isMax ? 'is-most' : isMin ? 'is-least' : '';
 
                     return (
                         <div key={digit} className='digit-unit'>
