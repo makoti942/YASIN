@@ -94,6 +94,47 @@ const darkMode = () => {
         colourSecondary: '#3c3c3c',
         colourTertiary: '#6d7278',
     };
+
+    workspace.Colours.Variables = {
+        colour: '#2e2e2e',
+        colourSecondary: '#3c3c3c',
+        colourTertiary: '#6d7278',
+    };
+    workspace.Colours.Functions = {
+        colour: '#2e2e2e',
+        colourSecondary: '#3c3c3c',
+        colourTertiary: '#6d7278',
+    };
+    workspace.Colours.List = {
+        colour: '#2e2e2e',
+        colourSecondary: '#3c3c3c',
+        colourTertiary: '#6d7278',
+    };
+    workspace.Colours.Indicators = {
+        colour: '#2e2e2e',
+        colourSecondary: '#3c3c3c',
+        colourTertiary: '#6d7278',
+    };
+    workspace.Colours.Time = {
+        colour: '#2e2e2e',
+        colourSecondary: '#3c3c3c',
+        colourTertiary: '#6d7278',
+    };
+    workspace.Colours.Tick_Analysis = {
+        colour: '#2e2e2e',
+        colourSecondary: '#3c3c3c',
+        colourTertiary: '#6d7278',
+    };
+    workspace.Colours.Candle = {
+        colour: '#2e2e2e',
+        colourSecondary: '#3c3c3c',
+        colourTertiary: '#6d7278',
+    };
+    workspace.Colours.Miscellaneous = {
+        colour: '#2e2e2e',
+        colourSecondary: '#3c3c3c',
+        colourTertiary: '#6d7278',
+    };
 };
 
 export const setColors = isDarkMode => {
