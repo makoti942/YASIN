@@ -25,6 +25,11 @@ const BOTS: Bot[] = [
     {
         id: '2',
         name: 'Expert Speed Bot',
+        description: 'Advanced speed trading bot with optimized entry and exit points for quick trades.',
+        fileName: '2_2025_Updated_Expert_Speed_Bot_Version_📉📉📉📈📈📈_1_1_1765711647656.xml',
+        category: 'Speed Trading',
+        icon: '⚡',
+    },
     {
         id: '3',
         name: 'Candle Mine Bot',
