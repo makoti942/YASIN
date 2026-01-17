@@ -5,7 +5,7 @@
         <link rel="icon" type="image/png" href="/makoti-logo.png?v=1.2" />
         <link rel="apple-touch-icon" href="/makoti-logo.png?v=1.2" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-        <title>MAKOTI TRADERS</title>
+        <title>.</title>
         
         <style>
             :root { font-size: 62.5%; }
@@ -16,28 +16,26 @@
                 fill: #000000 !important;
             }
 
-            /* 2. LOGO + TEXT HEADER (Flexbox Alignment) */
             #makoti-header {
                 width: 100%;
                 background: #000000;
                 padding: 12px 0;
-                display: flex;             /* Puts items side-by-side */
-                align-items: center;       /* Centers items vertically */
-                justify-content: center;    /* Centers the group horizontally */
+                display: flex;
+                align-items: center;
+                justify-content: center;
                 border-bottom: 2px solid #00d9ff;
                 position: relative;
                 z-index: 9999;
             }
 
-            /* Hide extra header elements from Deriv shell */
             .header, .header__menu, .header__nav, .traders-hub-header, .cashier-header, .reports-header {
                 display: none !important;
             }
 
             #makoti-header img {
-                height: 35px;               /* Professional height for the bar */
+                height: 35px;
                 width: auto;
-                margin-right: 15px;         /* Space between logo and text */
+                margin-right: 15px;
             }
 
             #makoti-header h1 {
@@ -50,10 +48,11 @@
                 letter-spacing: 1px;
             }
 
-            /* 3. TEXT COLORS - CHANGED TO BLACK */
-            .blocklyText { fill: #000000 !important; }
+            /* 1. CSS FIX: Force labels to Black */
+            .blocklyText { 
+                fill: #000000 !important; 
+            }
 
-            /* SURGICAL LOSS COLOR (Targets negative amounts only) */
             .makoti-loss, .loss, .dc-stat__value--loss, .blocklyText.loss { 
                 fill: #ff444f !important; 
                 color: #ff444f !important; 
@@ -63,14 +62,12 @@
                 color: #4bb4b3 !important; 
             }
 
-            /* 4. DYNAMIC BUTTONS */
             .makoti-stop-btn {
                 background-color: #ff444f !important;
                 box-shadow: 0 0 15px #ff444f !important;
                 color: white !important;
             }
 
-            /* INPUT BOXES */
             .blocklyEditableText > .blocklyFieldRect {
                 fill: #1a1a1a !important;
                 stroke: #00d9ff !important;
@@ -81,30 +78,33 @@
     <body class="body theme theme--light">
         <div id="makoti-header">
             <img src="/makoti-logo.png?v=1.2" alt="Logo">
-            <h1>Makoti</h1>
+            <h1>MAKOTI TRADERS</h1>
         </div>
 
         <div id="root"></div>
         
         <script>
             const makotiEngine = new MutationObserver(() => {
-                // A. STOP BUTTON FIX
                 document.querySelectorAll('button').forEach(btn => {
                     if (btn.textContent.toLowerCase().includes('stop')) {
                         btn.classList.add('makoti-stop-btn');
                     }
                 });
 
-                // B. SURGICAL COLOR FIX (RED FOR NEGATIVE NUMBERS ONLY)
                 const allNumbers = document.querySelectorAll('.blocklyText, .dc-stat__value, span, div');
                 allNumbers.forEach(el => {
                     const val = el.textContent.trim();
+                    
                     if (val.includes('-')) {
                         el.style.setProperty('fill', '#ff444f', 'important');
                         el.style.setProperty('color', '#ff444f', 'important');
                     } else if ((val.includes('$') || val.includes('+')) && !val.includes(':')) {
                         el.style.setProperty('fill', '#00ff41', 'important');
                         el.style.setProperty('color', '#00ff41', 'important');
+                    } 
+                    /* 2. SCRIPT FIX: If it's a label (no math signs), force it to BLACK */
+                    else if (el.classList.contains('blocklyText') && !el.closest('.blocklyEditableText')) {
+                        el.style.setProperty('fill', '#000000', 'important');
                     }
                 });
             });
@@ -115,7 +115,6 @@
                 characterData: true 
             });
 
-            // Force browser tab to update icon
             window.addEventListener('load', () => {
                 const link = document.querySelector("link[rel*='icon']");
                 if (link) link.href = "/makoti-logo.png?v=" + Date.now();
