@@ -24,8 +24,9 @@ $colour_toolboxSelected: $black;
     .zelos-renderer.zelos_renderer-theme .blocklyEditableText > rect:not(.blocklyDropdownRect),
     .blocklyPath[fill='#fff'],
     .blocklyVariableGet .blocklyPath,
-    .blocklyOutlinePath {
-        fill: $black !important;
+    .blocklyOutlinePath,
+    .blocklyMainBackground {
+        fill: #000 !important;
     }
 
     .flyout rect.blocklyFieldRect.blocklyDropdownRect,
