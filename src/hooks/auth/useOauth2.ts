@@ -55,7 +55,7 @@ export const useOauth2 = ({
         }
     }, [isClientAccountsPopulated, loggedState, isSilentLoginExcluded]);
 
-    const redirect_url = 'https://yasin--yassinmakate318.replit.app';
+    const redirect_url = 'https://makotitraders.vercel.app';
 
     const logoutHandler = async () => {
         client?.setIsLoggingOut(true);
