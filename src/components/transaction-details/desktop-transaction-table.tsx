@@ -114,12 +114,13 @@ export default function DesktopTransactionTable({
                                 <TableCell
                                     label={
                                         <div
-                                            className={classNames({
-                                                [`${PARENT_CLASS}__profit--win`]: data?.profit > 0,
-                                                [`${PARENT_CLASS}__profit--loss`]: data?.profit < 0,
-                                            })}
+                                            style={{
+                                                color: (data?.profit ?? 0) < 0 ? '#ff3e3e' : '#00ff44',
+                                                fontWeight: 'bold'
+                                            }}
                                         >
-                                            {Math.abs(data?.profit ?? 0).toFixed(2)}
+                                            {(data?.profit ?? 0) >= 0 ? '+' : ''}
+                                            {(data?.profit ?? 0).toFixed(2)}
                                         </div>
                                     }
                                     loader={!data.is_completed}
@@ -154,15 +155,14 @@ export default function DesktopTransactionTable({
                     <TableCell
                         label={
                             <div
-                                className={classNames(
-                                    result?.total_profit && {
-                                        [`${PARENT_CLASS}__profit--win`]: result?.total_profit > 0,
-                                        [`${PARENT_CLASS}__profit--loss`]: result?.total_profit < 0,
-                                    }
-                                )}
+                                style={{
+                                    color: (result?.total_profit ?? 0) < 0 ? '#ff3e3e' : '#00ff44',
+                                    fontWeight: 'bold'
+                                }}
                                 data-testid='transaction_details_table_profit'
                             >
-                                {Math.abs(result?.total_profit ?? 0).toFixed(2)}
+                                {(result?.total_profit ?? 0) >= 0 ? '+' : ''}
+                                {(result?.total_profit ?? 0).toFixed(2)}
                             </div>
                         }
                     />

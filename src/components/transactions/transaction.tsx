@@ -217,12 +217,13 @@ const Transaction = ({ contract, active_transaction_id, onClickTransaction }: TT
                 <div className='transactions__cell transactions__profit'>
                     {contract?.is_completed ? (
                         <div
-                            className={classNames({
-                                'transactions__profit--win': contract?.profit && contract?.profit >= 0,
-                                'transactions__profit--loss': contract?.profit && contract?.profit < 0,
-                            })}
+                            style={{
+                                color: (contract?.profit ?? 0) < 0 ? '#ff3e3e' : '#00ff44',
+                                fontWeight: 'bold'
+                            }}
                         >
-                            <Money amount={Math.abs(contract.profit || 0)} currency={contract.currency} show_currency />
+                            {(contract?.profit ?? 0) >= 0 ? '+' : ''}
+                            <Money amount={contract.profit || 0} currency={contract.currency} show_currency />
                         </div>
                     ) : (
                         <TransactionFieldLoader />

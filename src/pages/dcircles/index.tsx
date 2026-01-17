@@ -13,8 +13,8 @@ const volatilities = [
 
 const Dcircles = () => {
     const [volatility, setVolatility] = useState('1HZ10V');
-    const [digitsData, setDigitsData] = useState(Array(10).fill(10)); // Initial baseline
-    const [currentDigit, setCurrentDigit] = useState(null);
+    const [digitsBuffer, setDigitsBuffer] = useState<number[]>([]);
+    const [currentDigit, setCurrentDigit] = useState<number | null>(null);
 
     useEffect(() => {
         // Attempt to find the global websocket or use the one from Deriv API
@@ -25,25 +25,25 @@ const Dcircles = () => {
             const interval = setInterval(() => {
                 const nextDigit = Math.floor(Math.random() * 10);
                 setCurrentDigit(nextDigit);
-                setDigitsData(prev => {
-                    const next = [...prev];
-                    next[nextDigit] += 1;
+                setDigitsBuffer(prev => {
+                    const next = [...prev, nextDigit];
+                    if (next.length > 100) return next.slice(-100);
                     return next;
                 });
             }, 1000);
             return () => clearInterval(interval);
         }
 
-        const handleMessage = (event) => {
+        const handleMessage = (event: MessageEvent) => {
             const data = JSON.parse(event.data);
             if (data.msg_type === 'tick' && data.tick.symbol === volatility) {
                 const quote = data.tick.quote.toString();
                 const lastDigit = parseInt(quote.slice(-1));
                 
                 setCurrentDigit(lastDigit);
-                setDigitsData(prev => {
-                    const next = [...prev];
-                    next[lastDigit] += 1;
+                setDigitsBuffer(prev => {
+                    const next = [...prev, lastDigit];
+                    if (next.length > 100) return next.slice(-100);
                     return next;
                 });
             }
@@ -64,20 +64,15 @@ const Dcircles = () => {
         };
     }, [volatility]);
 
-    // Math logic: Map raw frequency to a strict 8.00% - 12.00% range
+    // Math logic: Map raw frequency in 100-tick window
     const stats = useMemo(() => {
-        const total = digitsData.reduce((a, b) => a + b, 0);
-        const raw = digitsData.map(count => (count / total) * 100);
-        const minR = Math.min(...raw);
-        const maxR = Math.max(...raw);
-
-        return raw.map(p => {
-            if (maxR === minR) return 10.00;
-            // Linear transformation to [8, 12] range
-            const mapped = 8 + ((p - minR) * (12 - 8)) / (maxR - minR);
-            return parseFloat(mapped.toFixed(2));
-        });
-    }, [digitsData]);
+        if (digitsBuffer.length === 0) return Array(10).fill(0);
+        
+        const counts = Array(10).fill(0);
+        digitsBuffer.forEach(d => counts[d]++);
+        
+        return counts.map(count => parseFloat(((count / digitsBuffer.length) * 100).toFixed(2)));
+    }, [digitsBuffer]);
 
     const maxVal = Math.max(...stats);
     const minVal = Math.min(...stats);
@@ -90,7 +85,7 @@ const Dcircles = () => {
                     value={volatility} 
                     onChange={(e) => {
                         setVolatility(e.target.value);
-                        setDigitsData(Array(10).fill(10)); // Reset stats
+                        setDigitsBuffer([]); // Reset stats
                         setCurrentDigit(null);
                     }}
                 >
