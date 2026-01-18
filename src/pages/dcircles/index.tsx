@@ -15,15 +15,19 @@ const volatilities = [
     { id: '1HZ100V', name: 'Volatility 100 (1s) Index' },
 ];
 
+const DAMPING_FACTOR = 0.1;
+const BASE_PERCENTAGE = 10;
+const MAX_CHANGE = 0.02;
+
 const Dcircles = () => {
     const [volatility, setVolatility] = useState('1HZ10V');
     const [digitsBuffer, setDigitsBuffer] = useState<number[]>([]);
     const [currentDigit, setCurrentDigit] = useState<number | null>(null);
-    const [stats, setStats] = useState(Array(10).fill(0));
+    const [stats, setStats] = useState(Array(10).fill(BASE_PERCENTAGE));
 
     const ws = useRef<WebSocket | null>(null);
     const subscriptionId = useRef<string | null>(null);
-    const targetStats = useRef(Array(10).fill(0));
+    const targetStats = useRef(Array(10).fill(BASE_PERCENTAGE));
     const animationFrameId = useRef<number | null>(null);
     const pipSize = useRef<number | null>(null);
 
@@ -43,15 +47,16 @@ const Dcircles = () => {
 
         setCurrentDigit(null);
         setDigitsBuffer([]);
-        setStats(Array(10).fill(0));
-        targetStats.current = Array(10).fill(0);
+        setStats(Array(10).fill(BASE_PERCENTAGE));
+        targetStats.current = Array(10).fill(BASE_PERCENTAGE);
         subscriptionId.current = null;
-        pipSize.current = null; 
+        pipSize.current = null;
 
         ws.current = new WebSocket('wss://ws.derivws.com/websockets/v3?app_id=101585');
         const websocket = ws.current;
 
         websocket.onopen = () => {
+            // We need pip_size first, so we subscribe to ticks
             websocket.send(JSON.stringify({ ticks: volatility, subscribe: 1 }));
         };
 
@@ -69,8 +74,10 @@ const Dcircles = () => {
                 }
 
                 if (data.tick) {
+                    // First tick response will have pip_size
                     if (pipSize.current === null && data.tick.pip_size !== undefined) {
                         pipSize.current = data.tick.pip_size;
+                        // Now that we have pip_size, get history
                         websocket.send(JSON.stringify({ ticks_history: volatility, end: 'latest', count: 50, style: 'ticks' }));
                     }
 
@@ -94,6 +101,14 @@ const Dcircles = () => {
                         return parseInt(quote.slice(-1), 10);
                     });
                     setDigitsBuffer(initialDigits);
+
+                    // Initialize stats based on history
+                    const counts = Array(10).fill(0);
+                    initialDigits.forEach(d => counts[d]++);
+                    const total = initialDigits.length;
+                    const initialPercentages = total === 0 ? Array(10).fill(BASE_PERCENTAGE) : counts.map(c => BASE_PERCENTAGE + (c / total * 100 - BASE_PERCENTAGE) * DAMPING_FACTOR);
+                    setStats(initialPercentages);
+                    targetStats.current = initialPercentages;
                 }
             }
         };
@@ -112,10 +127,12 @@ const Dcircles = () => {
     }, [volatility]);
 
     useEffect(() => {
+        if (digitsBuffer.length === 0) return;
+
         const counts = Array(10).fill(0);
         digitsBuffer.forEach(d => counts[d]++);
         const total = digitsBuffer.length;
-        targetStats.current = total === 0 ? Array(10).fill(0) : counts.map(c => (c / total) * 100);
+        targetStats.current = total === 0 ? Array(10).fill(BASE_PERCENTAGE) : counts.map(c => BASE_PERCENTAGE + (c / total * 100 - BASE_PERCENTAGE) * DAMPING_FACTOR);
     }, [digitsBuffer]);
 
     useEffect(() => {
@@ -124,10 +141,13 @@ const Dcircles = () => {
                 const newStats = prevStats.map((val, i) => {
                     const target = targetStats.current[i];
                     const diff = target - val;
-                    if (Math.abs(diff) < 0.01) {
+
+                    if (Math.abs(diff) < 0.001) {
                         return target;
                     }
-                    return val + diff * 0.02; // Smoother and slower transition
+
+                    const change = diff > 0 ? Math.min(diff * 0.1, MAX_CHANGE) : Math.max(diff * 0.1, -MAX_CHANGE);
+                    return val + change;
                 });
                 return newStats;
             });
