@@ -1,21 +1,22 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { Localize } from '@deriv/translations';
 import './dcircles.scss';
 
 const volatilities = [
-    { id: 'R_10', name: 'Volatility 10 Index' },
-    { id: 'R_25', name: 'Volatility 25 Index' },
-    { id: 'R_50', name: 'Volatility 50 Index' },
-    { id: 'R_75', name: 'Volatility 75 Index' },
-    { id: 'R_100', name: 'Volatility 100 Index' },
-    { id: '1HZ10V', name: 'Volatility 10 (1s) Index' },
-    { id: '1HZ25V', name: 'Volatility 25 (1s) Index' },
-    { id: '1HZ50V', name: 'Volatility 50 (1s) Index' },
-    { id: '1HZ75V', name: 'Volatility 75 (1s) Index' },
-    { id: '1HZ100V', name: 'Volatility 100 (1s) Index' },
-    { id: '1HZ150V', name: 'Volatility 150 (1s) Index' },
-    { id: '1HZ200V', name: 'Volatility 200 (1s) Index' },
-    { id: '1HZ250V', name: 'Volatility 250 (1s) Index' },
-    { id: '1HZ300V', name: 'Volatility 300 (1s) Index' },
+    { id: 'R_10', name: <Localize i18n_default_text='Volatility 10 Index' /> },
+    { id: 'R_25', name: <Localize i18n_default_text='Volatility 25 Index' /> },
+    { id: 'R_50', name: <Localize i18n_default_text='Volatility 50 Index' /> },
+    { id: 'R_75', name: <Localize i18n_default_text='Volatility 75 Index' /> },
+    { id: 'R_100', name: <Localize i18n_default_text='Volatility 100 Index' /> },
+    { id: '1HZ10V', name: <Localize i18n_default_text='Volatility 10 (1s) Index' /> },
+    { id: '1HZ25V', name: <Localize i18n_default_text='Volatility 25 (1s) Index' /> },
+    { id: '1HZ50V', name: <Localize i18n_default_text='Volatility 50 (1s) Index' /> },
+    { id: '1HZ75V', name: <Localize i18n_default_text='Volatility 75 (1s) Index' /> },
+    { id: '1HZ100V', name: <Localize i18n_default_text='Volatility 100 (1s) Index' /> },
+    { id: '1HZ150V', name: <Localize i18n_default_text='Volatility 150 (1s) Index' /> },
+    { id: '1HZ200V', name: <Localize i18n_default_text='Volatility 200 (1s) Index' /> },
+    { id: '1HZ250V', name: <Localize i18n_default_text='Volatility 250 (1s) Index' /> },
+    { id: '1HZ300V', name: <Localize i18n_default_text='Volatility 300 (1s) Index' /> },
 ];
 
 const Dcircles = () => {
