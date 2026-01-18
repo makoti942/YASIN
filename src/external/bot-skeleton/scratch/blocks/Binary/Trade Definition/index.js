@@ -6,6 +6,8 @@ import './trade_definition_contracttype';
 import './trade_definition_candleinterval';
 import './trade_definition_restartbuysell';
 import './trade_definition_restartonerror';
+import './trade_definition_random_volatility';
+import './trade_definition_trade_on_every_tick';
 import './trade_definition_tradeoptions';
 import './accumulator_take_profit';
 import './trade_definition_accumulator';
