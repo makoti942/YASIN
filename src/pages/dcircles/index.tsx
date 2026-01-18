@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useRef,useState } from 'react';
 import { Localize } from '@deriv-com/translations';
 import './dcircles.scss';
 
@@ -15,7 +15,6 @@ const volatilities = [
     { id: '1HZ100V', name: 'Volatility 100 (1s) Index' },
 ];
 
-const MAX_CHANGE = 0.02;
 const HISTORY_COUNT = 100;
 
 const Dcircles = () => {
@@ -26,8 +25,6 @@ const Dcircles = () => {
 
     const ws = useRef<WebSocket | null>(null);
     const subscriptionId = useRef<string | null>(null);
-    const targetStats = useRef(Array(10).fill(10));
-    const animationFrameId = useRef<number | null>(null);
     const pipSize = useRef<number | null>(null);
 
     useEffect(() => {
@@ -47,7 +44,6 @@ const Dcircles = () => {
         setCurrentDigit(null);
         setDigitsBuffer([]);
         setStats(Array(10).fill(10));
-        targetStats.current = Array(10).fill(10);
         subscriptionId.current = null;
         pipSize.current = null;
 
@@ -55,6 +51,9 @@ const Dcircles = () => {
         const websocket = ws.current;
 
         websocket.onopen = () => {
+            websocket.send(
+                JSON.stringify({ ticks_history: volatility, end: 'latest', count: HISTORY_COUNT, style: 'ticks' })
+            );
             websocket.send(JSON.stringify({ ticks: volatility, subscribe: 1 }));
         };
 
@@ -71,39 +70,31 @@ const Dcircles = () => {
                     subscriptionId.current = data.subscription.id;
                 }
 
-                if (data.tick) {
-                    if (pipSize.current === null && data.tick.pip_size !== undefined) {
-                        pipSize.current = data.tick.pip_size;
-                        websocket.send(JSON.stringify({ ticks_history: volatility, end: 'latest', count: HISTORY_COUNT, style: 'ticks' }));
-                    }
+                if (data.tick && pipSize.current !== null) {
+                    const quote = parseFloat(data.tick.quote).toFixed(pipSize.current);
+                    const lastDigit = parseInt(quote.slice(-1), 10);
 
-                    if (pipSize.current !== null) {
-                        const quote = parseFloat(data.tick.quote).toFixed(pipSize.current);
-                        const lastDigit = parseInt(quote.slice(-1), 10);
-
-                        setCurrentDigit(lastDigit);
-                        setDigitsBuffer(prev => {
-                            const newBuffer = [...prev, lastDigit];
-                            return newBuffer.length > HISTORY_COUNT ? newBuffer.slice(-HISTORY_COUNT) : newBuffer;
-                        });
-                    }
+                    setCurrentDigit(lastDigit);
+                    setDigitsBuffer(prev => [...prev, lastDigit].slice(-HISTORY_COUNT));
                 }
             }
 
             if (data.msg_type === 'history') {
-                if (data.history && data.history.prices && pipSize.current !== null) {
+                if (data.history && data.history.prices) {
+                    if (pipSize.current === null) {
+                        const firstPrice = data.history.prices[0];
+                        if (firstPrice.includes('.')) {
+                            pipSize.current = firstPrice.split('.')[1].length;
+                        } else {
+                            pipSize.current = 0;
+                        }
+                    }
+
                     const initialDigits = data.history.prices.map((price: string) => {
                         const quote = parseFloat(price).toFixed(pipSize.current!);
                         return parseInt(quote.slice(-1), 10);
                     });
                     setDigitsBuffer(initialDigits);
-
-                    const counts = Array(10).fill(0);
-                    initialDigits.forEach(d => counts[d]++);
-                    const total = initialDigits.length;
-                    const initialPercentages = total === 0 ? Array(10).fill(10) : counts.map(c => (c / total) * 100);
-                    setStats(initialPercentages);
-                    targetStats.current = initialPercentages;
                 }
             }
         };
@@ -122,41 +113,24 @@ const Dcircles = () => {
     }, [volatility]);
 
     useEffect(() => {
-        if (digitsBuffer.length === 0) return;
+        if (digitsBuffer.length === 0) {
+            setStats(Array(10).fill(10));
+            return;
+        }
 
         const counts = Array(10).fill(0);
-        digitsBuffer.forEach(d => counts[d]++);
-        const total = digitsBuffer.length;
-        targetStats.current = total === 0 ? Array(10).fill(10) : counts.map(c => (c / total) * 100);
-    }, [digitsBuffer]);
-
-    useEffect(() => {
-        const animateStats = () => {
-            setStats(prevStats => {
-                const newStats = prevStats.map((val, i) => {
-                    const target = targetStats.current[i];
-                    const diff = target - val;
-
-                    if (Math.abs(diff) < 0.001) {
-                        return target;
-                    }
-
-                    const change = diff > 0 ? Math.min(diff * 0.1, MAX_CHANGE) : Math.max(diff * 0.1, -MAX_CHANGE);
-                    return val + change;
-                });
-                return newStats;
-            });
-            animationFrameId.current = requestAnimationFrame(animateStats);
-        };
-
-        animationFrameId.current = requestAnimationFrame(animateStats);
-
-        return () => {
-            if (animationFrameId.current) {
-                cancelAnimationFrame(animationFrameId.current);
+        digitsBuffer.forEach(d => {
+            if (d >= 0 && d <= 9) {
+                counts[d]++;
             }
-        };
-    }, []);
+        });
+
+        // Per the formula, the percentage is the count of occurrences in the last 100 ticks.
+        // Formula: (count / 100) * 100 = count
+        const newPercentages = counts.map(c => (c / HISTORY_COUNT) * 100);
+
+        setStats(newPercentages);
+    }, [digitsBuffer]);
 
     const areAllStatsSame = stats.every(val => Math.abs(val - stats[0]) < 0.001);
     const maxVal = areAllStatsSame ? -1 : Math.max(...stats);
@@ -169,11 +143,11 @@ const Dcircles = () => {
 
         return (
             <div key={digit} className='digit-unit'>
-                <div className={`arrow-indicator ${currentDigit === digit ? 'active' : ''}`}>{currentDigit === digit ? '▼' : ''}</div>
-                <div className={`circle-shape ${colorClass} ${currentDigit === digit ? 'hitting' : ''}`}>
-                    {digit}
+                <div className={`arrow-indicator ${currentDigit === digit ? 'active' : ''}`}>
+                    {currentDigit === digit ? '▼' : ''}
                 </div>
-                <div className={`percent-label ${colorClass}`}>{percentage.toFixed(2)}%</div>
+                <div className={`circle-shape ${colorClass} ${currentDigit === digit ? 'hitting' : ''}`}>{digit}</div>
+                <div className={`percent-label ${colorClass}`}>{percentage.toFixed(1)}%</div>
             </div>
         );
     };
@@ -192,10 +166,10 @@ const Dcircles = () => {
 
             <div className='circles-layout'>
                 <div className='circles-row'>
-                    {stats.slice(0, 6).map((percentage, digit) => renderDigit(digit, percentage))}
+                    {stats.slice(0, 5).map((percentage, digit) => renderDigit(digit, percentage))}
                 </div>
                 <div className='circles-row'>
-                    {stats.slice(6, 10).map((percentage, index) => renderDigit(index + 6, percentage))}
+                    {stats.slice(5, 10).map((percentage, index) => renderDigit(index + 5, percentage))}
                 </div>
             </div>
         </div>
