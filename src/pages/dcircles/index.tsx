@@ -24,8 +24,13 @@ const Dcircles = () => {
     });
     const [digitsBuffer, setDigitsBuffer] = useState<number[]>([]);
     const [currentDigit, setCurrentDigit] = useState<number | null>(null);
+    const [stats, setStats] = useState(Array(10).fill(0));
+    const [pipSize, setPipSize] = useState<number | null>(null);
+
     const ws = useRef<WebSocket | null>(null);
     const subscriptionId = useRef<string | null>(null);
+    const targetStats = useRef(Array(10).fill(0));
+    const animationFrameId = useRef<number | null>(null);
 
     useEffect(() => {
         localStorage.setItem('selectedVolatility', volatility);
@@ -34,10 +39,10 @@ const Dcircles = () => {
         const websocket = ws.current;
 
         websocket.onopen = () => {
-            websocket.send(JSON.stringify({ ticks: volatility, subscribe: 1 }));
+            websocket.send(JSON.stringify({ active_symbols: 'brief', product_type: 'basic' }));
         };
 
-        websocket.onmessage = (event: MessageEvent) => {
+        const onMessage = (event: MessageEvent) => {
             const data = JSON.parse(event.data);
 
             if (data.error) {
@@ -45,13 +50,22 @@ const Dcircles = () => {
                 return;
             }
 
+            if (data.msg_type === 'active_symbols') {
+                const symbol = data.active_symbols.find((s: any) => s.symbol === volatility);
+                if (symbol) {
+                    setPipSize(symbol.pip);
+                    // Now that we have pip size, subscribe to ticks
+                    websocket.send(JSON.stringify({ ticks: volatility, subscribe: 1 }));
+                }
+            }
+
             if (data.msg_type === 'tick') {
                 if (data.subscription) {
                     subscriptionId.current = data.subscription.id;
                 }
 
-                if (data.tick && typeof data.tick.quote === 'number') {
-                    const quote = String(data.tick.quote);
+                if (data.tick && pipSize !== null) {
+                    const quote = data.tick.quote.toFixed(pipSize);
                     const lastDigit = parseInt(quote.slice(-1), 10);
 
                     setCurrentDigit(lastDigit);
@@ -63,24 +77,53 @@ const Dcircles = () => {
             }
         };
 
+        websocket.addEventListener('message', onMessage);
+
         return () => {
+            if (animationFrameId.current) {
+                cancelAnimationFrame(animationFrameId.current);
+            }
             if (websocket && websocket.readyState === WebSocket.OPEN) {
                 if (subscriptionId.current) {
                     websocket.send(JSON.stringify({ forget: subscriptionId.current }));
                 }
                 websocket.close();
             }
+            websocket.removeEventListener('message', onMessage);
         };
-    }, [volatility]);
+    }, [volatility, pipSize]);
 
-    const stats = useMemo(() => {
+    useEffect(() => {
         const counts = Array(10).fill(0);
         digitsBuffer.forEach(d => counts[d]++);
         const total = digitsBuffer.length;
-        return total === 0 ? Array(10).fill(0) : counts.map(count => (count / total) * 100);
+        targetStats.current = total === 0 ? Array(10).fill(0) : counts.map(c => (c / total) * 100);
     }, [digitsBuffer]);
-    
-    const areAllStatsSame = stats.every(val => val === stats[0]);
+
+    useEffect(() => {
+        const animateStats = () => {
+            setStats(prevStats => {
+                const newStats = prevStats.map((val, i) => {
+                    const target = targetStats.current[i];
+                    const diff = target - val;
+                    // Smooth transition
+                    return val + diff * 0.1;
+                });
+                return newStats;
+            });
+            animationFrameId.current = requestAnimationFrame(animateStats);
+        };
+
+        animationFrameId.current = requestAnimationFrame(animateStats);
+
+        return () => {
+            if (animationFrameId.current) {
+                cancelAnimationFrame(animationFrameId.current);
+            }
+        };
+    }, []);
+
+    const areAllStatsSame = stats.every(val => val.toFixed(2) === stats[0].toFixed(2));
     const maxVal = areAllStatsSame ? -1 : Math.max(...stats);
     const minVal = areAllStatsSame ? -1 : Math.min(...stats);
 
@@ -90,7 +133,15 @@ const Dcircles = () => {
                 <select
                     className='deriv-dropdown'
                     value={volatility}
-                    onChange={e => setVolatility(e.target.value)}
+                    onChange={e => {
+                        setVolatility(e.target.value);
+                        setDigitsBuffer([]);
+                        setCurrentDigit(null);
+                        setPipSize(null); // Reset pip size on volatility change
+                        if (subscriptionId.current && ws.current?.readyState === WebSocket.OPEN) {
+                            ws.current.send(JSON.stringify({ forget: subscriptionId.current }));
+                        }
+                    }}
                 >
                     {volatilities.map(v => (
                         <option key={v.id} value={v.id}>
@@ -108,11 +159,11 @@ const Dcircles = () => {
 
                     return (
                         <div key={digit} className='digit-unit'>
-                            <div className={`arrow-indicator ${currentDigit === digit ? 'active' : ''}`}>🔽</div>
-                            <div className={`circle-shape ${colorClass} ${currentDigit === digit ? 'hitting' : ''}`}>
+                            <div className={\`arrow-indicator \${currentDigit === digit ? 'active' : ''}\`}>🔽</div>
+                            <div className={\`circle-shape \${colorClass} \${currentDigit === digit ? 'hitting' : ''}\`}>
                                 {digit}
                             </div>
-                            <div className={`percent-label ${colorClass}`}>{percentage.toFixed(2)}%</div>
+                            <div className={\`percent-label \${colorClass}\`}>{percentage.toFixed(2)}%</div>
                         </div>
                     );
                 })}
