@@ -1,5 +1,4 @@
 import { localize } from '@deriv-com/translations';
-import { runIrreversibleEvents } from '../../../utils';
 
 window.Blockly.Blocks.trade_definition_random_volatility = {
     init() {
@@ -29,24 +28,6 @@ window.Blockly.Blocks.trade_definition_random_volatility = {
             display_name: localize('Change Volatility on Each Trade'),
             description: localize('Enable this to randomly change the volatility after each trade.'),
         };
-    },
-    onchange: function (event) {
-        if (!this.workspace || this.workspace.isDragging() || window.Blockly.derivWorkspace.isFlyoutVisible) {
-            return;
-        }
-
-        if (event.type === window.Blockly.Events.BLOCK_CREATE && event.ids.includes(this.id)) {
-            const trade_definition_block = this.workspace.getTradeDefinitionBlock();
-            if (trade_definition_block && this.id !== trade_definition_block.id) {
-                const random_volatility_block = trade_definition_block.getChildByType('trade_definition_random_volatility');
-                if (random_volatility_block) {
-                    runIrreversibleEvents(() => {
-                        random_volatility_block.unplug(true);
-                        random_volatility_block.dispose();
-                    });
-                }
-            }
-        }
     },
 };
 
