@@ -13,10 +13,6 @@ const volatilities = [
     { id: '1HZ50V', name: 'Volatility 50 (1s) Index' },
     { id: '1HZ75V', name: 'Volatility 75 (1s) Index' },
     { id: '1HZ100V', name: 'Volatility 100 (1s) Index' },
-    { id: '1HZ150V', name: 'Volatility 150 (1s) Index' },
-    { id: '1HZ200V', name: 'Volatility 200 (1s) Index' },
-    { id: '1HZ250V', name: 'Volatility 250 (1s) Index' },
-    { id: '1HZ300V', name: 'Volatility 300 (1s) Index' },
 ];
 
 const Dcircles = () => {
@@ -43,9 +39,6 @@ const Dcircles = () => {
 
         if (ws.current) {
             ws.current.close();
-        }
-        if (animationFrameId.current) {
-            cancelAnimationFrame(animationFrameId.current);
         }
 
         setCurrentDigit(null);
@@ -118,9 +111,6 @@ const Dcircles = () => {
                 websocket.removeEventListener('message', onMessage);
                 websocket.close();
             }
-            if (animationFrameId.current) {
-                cancelAnimationFrame(animationFrameId.current);
-            }
         };
     }, [volatility]);
 
@@ -151,7 +141,7 @@ const Dcircles = () => {
                 cancelAnimationFrame(animationFrameId.current);
             }
         };
-    }, []);
+    }, [volatility]);
 
     const areAllStatsSame = stats.every(val => val.toFixed(2) === stats[0].toFixed(2));
     const maxVal = areAllStatsSame ? -1 : Math.max(...stats);
