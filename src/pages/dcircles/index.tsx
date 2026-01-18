@@ -15,7 +15,7 @@ const volatilities = [
     { id: '1HZ100V', name: 'Volatility 100 (1s) Index' },
 ];
 
-const HISTORY_COUNT = 100;
+const HISTORY_COUNT = 1000;
 
 const Dcircles = () => {
     const [volatility, setVolatility] = useState('1HZ10V');
@@ -138,15 +138,12 @@ const Dcircles = () => {
 
     const stats = React.useMemo(() => {
         const counts = Array(10).fill(0);
-        if (digits.length === 0) {
-            return counts.map(() => 0);
-        }
         digits.forEach(d => {
             if (d >= 0 && d <= 9) {
                 counts[d]++;
             }
         });
-        return counts.map(c => (c / digits.length) * 100);
+        return counts.map(c => (c / HISTORY_COUNT) * 100);
     }, [digits]);
 
     const areAllStatsSame = stats.every(val => isNaN(val) || Math.abs(val - stats[0]) < 0.001);
