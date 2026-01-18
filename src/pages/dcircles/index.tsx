@@ -72,18 +72,18 @@ const Dcircles = () => {
             if (data.msg_type === 'active_symbols') {
                 const symbol = data.active_symbols.find((s: any) => s.symbol === volatility);
                 if (symbol) {
-                    pipSize.current = -Math.log10(symbol.pip);
+                    const pipString = String(symbol.pip);
+                    const fractionalPart = pipString.split('.')[1];
+                    pipSize.current = fractionalPart ? fractionalPart.length : 0;
                     websocket.send(JSON.stringify({ ticks_history: volatility, end: 'latest', count: 50, style: 'ticks' }));
                 }
             }
 
             if (data.msg_type === 'history') {
-                if (data.history && data.history.prices && typeof pipSize.current === 'number') {
+                if (data.history && data.history.prices && pipSize.current !== null) {
                     const initialDigits = data.history.prices.map((price: string) => {
-                        const quote = parseFloat(price);
-                        const multiplier = Math.pow(10, pipSize.current!);
-                        const lastDigit = Math.floor((quote * multiplier) % 10);
-                        return lastDigit;
+                        const quote = parseFloat(price).toFixed(pipSize.current!);
+                        return parseInt(quote.slice(-1), 10);
                     });
                     setDigitsBuffer(initialDigits);
                 }
@@ -95,10 +95,9 @@ const Dcircles = () => {
                     subscriptionId.current = data.subscription.id;
                 }
 
-                if (data.tick && typeof pipSize.current === 'number') {
-                    const quote = data.tick.quote;
-                    const multiplier = Math.pow(10, pipSize.current);
-                    const lastDigit = Math.floor((quote * multiplier) % 10);
+                if (data.tick && pipSize.current !== null) {
+                    const quote = data.tick.quote.toFixed(pipSize.current);
+                    const lastDigit = parseInt(quote.slice(-1), 10);
 
                     setCurrentDigit(lastDigit);
                     setDigitsBuffer(prev => {
