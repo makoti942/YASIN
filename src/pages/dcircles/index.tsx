@@ -1,4 +1,4 @@
-import React, { useEffect, useRef,useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Localize } from '@deriv-com/translations';
 import './dcircles.scss';
 
@@ -51,10 +51,7 @@ const Dcircles = () => {
         const websocket = ws.current;
 
         websocket.onopen = () => {
-            websocket.send(
-                JSON.stringify({ ticks_history: volatility, end: 'latest', count: HISTORY_COUNT, style: 'ticks' })
-            );
-            websocket.send(JSON.stringify({ ticks: volatility, subscribe: 1 }));
+            websocket.send(JSON.stringify({ ticks_history: volatility, end: 'latest', count: HISTORY_COUNT, style: 'ticks', subscribe: 1 }));
         };
 
         const onMessage = (event: MessageEvent) => {
@@ -65,36 +62,31 @@ const Dcircles = () => {
                 return;
             }
 
-            if (data.msg_type === 'tick') {
+            if (data.msg_type === 'tick' || data.msg_type === 'history') {
+                const ticks = data.history ? data.history.prices.map((p:string) => ({quote: p})) : [data.tick];
                 if (data.subscription) {
                     subscriptionId.current = data.subscription.id;
                 }
 
-                if (data.tick && pipSize.current !== null) {
-                    const quote = parseFloat(data.tick.quote).toFixed(pipSize.current);
-                    const lastDigit = parseInt(quote.slice(-1), 10);
-
-                    setCurrentDigit(lastDigit);
-                    setDigitsBuffer(prev => [...prev, lastDigit].slice(-HISTORY_COUNT));
-                }
-            }
-
-            if (data.msg_type === 'history') {
-                if (data.history && data.history.prices) {
-                    if (pipSize.current === null) {
-                        const firstPrice = data.history.prices[0];
-                        if (firstPrice.includes('.')) {
-                            pipSize.current = firstPrice.split('.')[1].length;
-                        } else {
-                            pipSize.current = 0;
-                        }
+                if (pipSize.current === null) {
+                    const firstPrice = ticks[0].quote;
+                    if(firstPrice.includes('.')) {
+                       pipSize.current = firstPrice.split('.')[1].length;
+                    } else {
+                       pipSize.current = 0;
                     }
+                }
 
-                    const initialDigits = data.history.prices.map((price: string) => {
-                        const quote = parseFloat(price).toFixed(pipSize.current!);
-                        return parseInt(quote.slice(-1), 10);
-                    });
-                    setDigitsBuffer(initialDigits);
+                const newDigits = ticks.map((tick: { quote: string }) => {
+                    const quote = parseFloat(tick.quote).toFixed(pipSize.current!);
+                    return parseInt(quote.slice(-1), 10);
+                });
+
+                if (data.msg_type === 'history') {
+                    setDigitsBuffer(newDigits);
+                } else {
+                    setCurrentDigit(newDigits[0]);
+                    setDigitsBuffer(prev => [...prev, newDigits[0]].slice(-HISTORY_COUNT));
                 }
             }
         };
@@ -125,11 +117,10 @@ const Dcircles = () => {
             }
         });
 
-        // Per the formula, the percentage is the count of occurrences in the last 100 ticks.
-        // Formula: (count / 100) * 100 = count
-        const newPercentages = counts.map(c => (c / HISTORY_COUNT) * 100);
-
+        const newPercentages = counts.map(c => (c / digitsBuffer.length) * 100);
+        
         setStats(newPercentages);
+
     }, [digitsBuffer]);
 
     const areAllStatsSame = stats.every(val => Math.abs(val - stats[0]) < 0.001);
@@ -143,10 +134,10 @@ const Dcircles = () => {
 
         return (
             <div key={digit} className='digit-unit'>
-                <div className={`arrow-indicator ${currentDigit === digit ? 'active' : ''}`}>
-                    {currentDigit === digit ? '▼' : ''}
+                <div className={`arrow-indicator ${currentDigit === digit ? 'active' : ''}`}>{currentDigit === digit ? '▼' : ''}</div>
+                <div className={`circle-shape ${colorClass} ${currentDigit === digit ? 'hitting' : ''}`}>
+                    {digit}
                 </div>
-                <div className={`circle-shape ${colorClass} ${currentDigit === digit ? 'hitting' : ''}`}>{digit}</div>
                 <div className={`percent-label ${colorClass}`}>{percentage.toFixed(1)}%</div>
             </div>
         );
