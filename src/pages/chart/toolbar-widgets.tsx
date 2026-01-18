@@ -1,13 +1,5 @@
 import { memo } from 'react';
-import {
-    ChartType,
-    DrawTools,
-    Share,
-    StudyLegend,
-    Timeperiod,
-    ToolbarWidget,
-    Views,
-} from '@deriv/deriv-charts';
+import { DrawTools, Share, StudyLegend, Timeperiod, ToolbarWidget, Views } from '@deriv/deriv-charts';
 
 type TToolbarWidgetsProps = {
     updateChartType: (chart_type: string) => void;
@@ -19,15 +11,8 @@ type TToolbarWidgetsProps = {
 const ToolbarWidgets = ({ updateChartType, updateGranularity, position, isDesktop }: TToolbarWidgetsProps) => {
     return (
         <ToolbarWidget position={position}>
-            <div className="chart-mode">
-                <ChartType
-                    portalNodeId="modal_root"
-                    onChartType={updateChartType}
-                />
-                <Timeperiod
-                    portalNodeId="modal_root"
-                    onGranularity={updateGranularity}
-                />
+            <div className='chart-mode'>
+                <Timeperiod portalNodeId='modal_root' onGranularity={updateGranularity} />
             </div>
             {isDesktop && (
                 <>

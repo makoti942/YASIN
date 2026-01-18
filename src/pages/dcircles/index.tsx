@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useRef,useState } from 'react';
 import { Localize } from '@deriv-com/translations';
 import './dcircles.scss';
 
@@ -25,6 +25,7 @@ const Dcircles = () => {
     const ws = useRef<WebSocket | null>(null);
     const subscriptionId = useRef<string | null>(null);
     const pipSize = useRef<number | null>(null);
+    const lastTickTimestamp = useRef<number | null>(null);
 
     useEffect(() => {
         const savedVolatility = localStorage.getItem('selectedVolatility');
@@ -44,12 +45,21 @@ const Dcircles = () => {
         setDigits([]);
         subscriptionId.current = null;
         pipSize.current = null;
+        lastTickTimestamp.current = null;
 
         ws.current = new WebSocket('wss://ws.derivws.com/websockets/v3?app_id=101585');
         const websocket = ws.current;
 
         websocket.onopen = () => {
-            websocket.send(JSON.stringify({ ticks_history: volatility, end: 'latest', count: HISTORY_COUNT, style: 'ticks', subscribe: 1 }));
+            websocket.send(
+                JSON.stringify({
+                    ticks_history: volatility,
+                    end: 'latest',
+                    count: HISTORY_COUNT,
+                    style: 'ticks',
+                    subscribe: 1,
+                })
+            );
         };
 
         const onMessage = (event: MessageEvent) => {
@@ -65,27 +75,51 @@ const Dcircles = () => {
             }
 
             if (pipSize.current === null) {
-                const firstPrice = data.history ? data.history.prices[0] : data.tick.quote;
-                if (firstPrice.includes('.')) {
-                    pipSize.current = firstPrice.split('.')[1].length;
-                } else {
-                    pipSize.current = 0;
+                const firstPrice = data.history?.prices?.[0] ?? data.tick?.quote;
+                if (firstPrice) {
+                    const priceStr = String(firstPrice);
+                    if (priceStr.includes('.')) {
+                        pipSize.current = priceStr.split('.')[1].length;
+                    } else {
+                        pipSize.current = 0;
+                    }
                 }
             }
 
-            if (data.msg_type === 'history') {
-                const history_digits = data.history.prices.map((p: string) => {
-                    const quote = parseFloat(p).toFixed(pipSize.current!);
-                    return parseInt(quote.slice(-1), 10);
-                });
+            if (data.msg_type === 'history' && data.history.prices) {
+                const history_digits = data.history.prices
+                    .map((p: string) => {
+                        if (pipSize.current !== null) {
+                            const quote = parseFloat(p).toFixed(pipSize.current);
+                            return parseInt(quote.slice(-1), 10);
+                        }
+                        return null;
+                    })
+                    .filter((d): d is number => d !== null);
                 setDigits(history_digits);
+                if (data.history.times && data.history.times.length > 0) {
+                    lastTickTimestamp.current = data.history.times[data.history.times.length - 1];
+                }
             }
 
-            if (data.msg_type === 'tick') {
-                const quote = parseFloat(data.tick.quote).toFixed(pipSize.current!);
-                const new_digit = parseInt(quote.slice(-1), 10);
-                setCurrentDigit(new_digit);
-                setDigits(prev_digits => [...prev_digits.slice(1), new_digit]);
+            if (data.msg_type === 'tick' && data.tick.quote) {
+                if (lastTickTimestamp.current && data.tick.epoch <= lastTickTimestamp.current) {
+                    return;
+                }
+                lastTickTimestamp.current = data.tick.epoch;
+
+                if (pipSize.current !== null) {
+                    const quote = parseFloat(data.tick.quote).toFixed(pipSize.current);
+                    const new_digit = parseInt(quote.slice(-1), 10);
+                    setCurrentDigit(new_digit);
+                    setDigits(prev_digits => {
+                        const new_digits = [...prev_digits, new_digit];
+                        if (new_digits.length > HISTORY_COUNT) {
+                            return new_digits.slice(new_digits.length - HISTORY_COUNT);
+                        }
+                        return new_digits;
+                    });
+                }
             }
         };
 
@@ -104,6 +138,9 @@ const Dcircles = () => {
 
     const stats = React.useMemo(() => {
         const counts = Array(10).fill(0);
+        if (digits.length === 0) {
+            return counts.map(() => 0);
+        }
         digits.forEach(d => {
             if (d >= 0 && d <= 9) {
                 counts[d]++;
@@ -124,10 +161,10 @@ const Dcircles = () => {
 
         return (
             <div key={digit} className='digit-unit'>
-                <div className={`arrow-indicator ${currentDigit === digit ? 'active' : ''}`}>{currentDigit === digit ? '▼' : ''}</div>
-                <div className={`circle-shape ${colorClass} ${currentDigit === digit ? 'hitting' : ''}`}>
-                    {digit}
+                <div className={`arrow-indicator ${currentDigit === digit ? 'active' : ''}`}>
+                    {currentDigit === digit ? '▼' : ''}
                 </div>
+                <div className={`circle-shape ${colorClass} ${currentDigit === digit ? 'hitting' : ''}`}>{digit}</div>
                 <div className={`percent-label ${colorClass}`}>{percentage.toFixed(1)}%</div>
             </div>
         );
@@ -146,12 +183,8 @@ const Dcircles = () => {
             </div>
 
             <div className='circles-layout'>
-                <div className='circles-row'>
-                    {[0, 1, 2, 3, 4].map(renderDigit)}
-                </div>
-                <div className='circles-row'>
-                    {[5, 6, 7, 8, 9].map(renderDigit)}
-                </div>
+                <div className='circles-row'>{[0, 1, 2, 3, 4].map(renderDigit)}</div>
+                <div className='circles-row'>{[5, 6, 7, 8, 9].map(renderDigit)}</div>
             </div>
         </div>
     );
