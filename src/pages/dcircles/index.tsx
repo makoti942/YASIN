@@ -28,6 +28,7 @@ const Dcircles = () => {
     const subscriptionId = useRef<string | null>(null);
     const targetStats = useRef(Array(10).fill(0));
     const animationFrameId = useRef<number | null>(null);
+    const pipSize = useRef<number | null>(null);
 
     useEffect(() => {
         const savedVolatility = localStorage.getItem('selectedVolatility');
@@ -39,9 +40,24 @@ const Dcircles = () => {
     useEffect(() => {
         localStorage.setItem('selectedVolatility', volatility);
 
+        // Cleanup previous connection and state
+        if (ws.current) {
+            ws.current.close();
+        }
+        if (animationFrameId.current) {
+            cancelAnimationFrame(animationFrameId.current);
+        }
+
+        // Reset state for new volatility
+        setCurrentDigit(null);
+        setDigitsBuffer([]);
+        setStats(Array(10).fill(0));
+        targetStats.current = Array(10).fill(0);
+        pipSize.current = null;
+        subscriptionId.current = null;
+
         ws.current = new WebSocket('wss://ws.derivws.com/websockets/v3?app_id=101585');
         const websocket = ws.current;
-        let pipSize: number | null = null;
 
         websocket.onopen = () => {
             websocket.send(JSON.stringify({ active_symbols: 'brief', product_type: 'basic' }));
@@ -58,15 +74,15 @@ const Dcircles = () => {
             if (data.msg_type === 'active_symbols') {
                 const symbol = data.active_symbols.find((s: any) => s.symbol === volatility);
                 if (symbol) {
-                    pipSize = symbol.pip;
+                    pipSize.current = symbol.pip;
                     websocket.send(JSON.stringify({ ticks_history: volatility, end: 'latest', count: 50, style: 'ticks' }));
                 }
             }
 
             if (data.msg_type === 'history') {
-                if (data.history && data.history.prices && pipSize !== null) {
+                if (data.history && data.history.prices && pipSize.current !== null) {
                     const initialDigits = data.history.prices.map((price: string) => {
-                        const quote = parseFloat(price).toFixed(pipSize!);
+                        const quote = parseFloat(price).toFixed(pipSize.current!);
                         return parseInt(quote.slice(-1), 10);
                     });
                     setDigitsBuffer(initialDigits);
@@ -80,8 +96,8 @@ const Dcircles = () => {
                     subscriptionId.current = data.subscription.id;
                 }
 
-                if (data.tick && pipSize !== null) {
-                    const quote = data.tick.quote.toFixed(pipSize);
+                if (data.tick && pipSize.current !== null) {
+                    const quote = data.tick.quote.toFixed(pipSize.current);
                     const lastDigit = parseInt(quote.slice(-1), 10);
 
                     setCurrentDigit(lastDigit);
@@ -96,16 +112,16 @@ const Dcircles = () => {
         websocket.addEventListener('message', onMessage);
 
         return () => {
-            if (animationFrameId.current) {
-                cancelAnimationFrame(animationFrameId.current);
-            }
-            if (websocket && websocket.readyState === WebSocket.OPEN) {
+            if (websocket) {
                 if (subscriptionId.current) {
                     websocket.send(JSON.stringify({ forget: subscriptionId.current }));
                 }
+                websocket.removeEventListener('message', onMessage);
                 websocket.close();
             }
-            websocket.removeEventListener('message', onMessage);
+            if (animationFrameId.current) {
+                cancelAnimationFrame(animationFrameId.current);
+            }
         };
     }, [volatility]);
 
@@ -138,14 +154,6 @@ const Dcircles = () => {
         };
     }, []);
 
-    const handleVolatilityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setVolatility(e.target.value);
-        setDigitsBuffer([]);
-        setCurrentDigit(null);
-        setStats(Array(10).fill(0));
-        targetStats.current = Array(10).fill(0);
-    };
-
     const areAllStatsSame = stats.every(val => val.toFixed(2) === stats[0].toFixed(2));
     const maxVal = areAllStatsSame ? -1 : Math.max(...stats);
     const minVal = areAllStatsSame ? -1 : Math.min(...stats);
@@ -153,7 +161,7 @@ const Dcircles = () => {
     return (
         <div className='dcircles-container'>
             <div className='vol-selector-wrapper'>
-                <select className='deriv-dropdown' value={volatility} onChange={handleVolatilityChange}>
+                <select className='deriv-dropdown' value={volatility} onChange={e => setVolatility(e.target.value)}>
                     {volatilities.map(v => (
                         <option key={v.id} value={v.id}>
                             {v.name}
