@@ -15,9 +15,10 @@ const volatilities = [
     { id: '1HZ100V', name: 'Volatility 100 (1s) Index' },
 ];
 
-const DAMPING_FACTOR = 0.1;
+const DAMPING_FACTOR = 0.2;
 const BASE_PERCENTAGE = 10;
 const MAX_CHANGE = 0.02;
+const HISTORY_COUNT = 100;
 
 const Dcircles = () => {
     const [volatility, setVolatility] = useState('1HZ10V');
@@ -56,7 +57,6 @@ const Dcircles = () => {
         const websocket = ws.current;
 
         websocket.onopen = () => {
-            // We need pip_size first, so we subscribe to ticks
             websocket.send(JSON.stringify({ ticks: volatility, subscribe: 1 }));
         };
 
@@ -74,11 +74,9 @@ const Dcircles = () => {
                 }
 
                 if (data.tick) {
-                    // First tick response will have pip_size
                     if (pipSize.current === null && data.tick.pip_size !== undefined) {
                         pipSize.current = data.tick.pip_size;
-                        // Now that we have pip_size, get history
-                        websocket.send(JSON.stringify({ ticks_history: volatility, end: 'latest', count: 50, style: 'ticks' }));
+                        websocket.send(JSON.stringify({ ticks_history: volatility, end: 'latest', count: HISTORY_COUNT, style: 'ticks' }));
                     }
 
                     if (pipSize.current !== null) {
@@ -88,7 +86,7 @@ const Dcircles = () => {
                         setCurrentDigit(lastDigit);
                         setDigitsBuffer(prev => {
                             const newBuffer = [...prev, lastDigit];
-                            return newBuffer.length > 50 ? newBuffer.slice(-50) : newBuffer;
+                            return newBuffer.length > HISTORY_COUNT ? newBuffer.slice(-HISTORY_COUNT) : newBuffer;
                         });
                     }
                 }
@@ -102,11 +100,10 @@ const Dcircles = () => {
                     });
                     setDigitsBuffer(initialDigits);
 
-                    // Initialize stats based on history
                     const counts = Array(10).fill(0);
                     initialDigits.forEach(d => counts[d]++);
                     const total = initialDigits.length;
-                    const initialPercentages = total === 0 ? Array(10).fill(BASE_PERCENTAGE) : counts.map(c => BASE_PERCENTAGE + (c / total * 100 - BASE_PERCENTAGE) * DAMPING_FACTOR);
+                    const initialPercentages = total === 0 ? Array(10).fill(BASE_PERCENTAGE) : counts.map(c => BASE_PERCENTAGE + ((c / total) * 100 - BASE_PERCENTAGE) * DAMPING_FACTOR);
                     setStats(initialPercentages);
                     targetStats.current = initialPercentages;
                 }
@@ -132,7 +129,7 @@ const Dcircles = () => {
         const counts = Array(10).fill(0);
         digitsBuffer.forEach(d => counts[d]++);
         const total = digitsBuffer.length;
-        targetStats.current = total === 0 ? Array(10).fill(BASE_PERCENTAGE) : counts.map(c => BASE_PERCENTAGE + (c / total * 100 - BASE_PERCENTAGE) * DAMPING_FACTOR);
+        targetStats.current = total === 0 ? Array(10).fill(BASE_PERCENTAGE) : counts.map(c => BASE_PERCENTAGE + ((c / total) * 100 - BASE_PERCENTAGE) * DAMPING_FACTOR);
     }, [digitsBuffer]);
 
     useEffect(() => {
@@ -163,13 +160,13 @@ const Dcircles = () => {
         };
     }, []);
 
-    const areAllStatsSame = stats.every(val => val.toFixed(2) === stats[0].toFixed(2));
+    const areAllStatsSame = stats.every(val => Math.abs(val - stats[0]) < 0.001);
     const maxVal = areAllStatsSame ? -1 : Math.max(...stats);
     const minVal = areAllStatsSame ? -1 : Math.min(...stats);
 
     const renderDigit = (digit: number, percentage: number) => {
-        const isMax = !areAllStatsSame && percentage === maxVal;
-        const isMin = !areAllStatsSame && percentage === minVal;
+        const isMax = !areAllStatsSame && Math.abs(percentage - maxVal) < 0.001;
+        const isMin = !areAllStatsSame && Math.abs(percentage - minVal) < 0.001;
         const colorClass = isMax ? 'is-most' : isMin ? 'is-least' : '';
 
         return (
