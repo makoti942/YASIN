@@ -6,9 +6,11 @@
         <link rel="apple-touch-icon" href="/makoti-logo.png?v=1.2" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
         <title>MAKOTI TRADERS</title>
-        
+
         <style>
-            :root { font-size: 62.5%; }
+            :root {
+                font-size: 62.5%;
+            }
 
             /* 1. WELCOME SCREEN (SPLASH) STYLING */
             #welcome-screen {
@@ -23,7 +25,9 @@
                 align-items: center;
                 justify-content: center;
                 z-index: 100000; /* Highest priority */
-                transition: opacity 0.8s ease, visibility 0.8s;
+                transition:
+                    opacity 0.8s ease,
+                    visibility 0.8s;
             }
 
             #welcome-screen.fade-out {
@@ -59,7 +63,7 @@
                 animation: rotation 1s linear infinite;
             }
             .loader::after {
-                content: '';  
+                content: '';
                 position: absolute;
                 left: 50%;
                 top: 50%;
@@ -71,42 +75,48 @@
                 border-bottom-color: #00d9ff;
             }
 
-            @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-            @keyframes pulseLogo { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+            @keyframes rotation {
+                0% {
+                    transform: rotate(0deg);
+                }
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+            @keyframes pulseLogo {
+                0%,
+                100% {
+                    transform: scale(1);
+                }
+                50% {
+                    transform: scale(1.08);
+                }
+            }
 
             /* 2. MAIN SITE THEME */
-            .blocklyMainBackground, .injectionDiv, .body.theme--light {
+            .blocklyMainBackground,
+            .injectionDiv,
+            .body.theme--light {
                 background-color: #000000 !important;
                 fill: #000000 !important;
             }
 
-            #makoti-header {
-                width: 100%;
-                background: #000000;
-                padding: 12px 0;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-bottom: 2px solid #00d9ff;
-                position: relative;
-                z-index: 9999;
-            }
-
-            #makoti-header h1 {
-                color: #00d9ff;
-                font-family: Arial, sans-serif;
-                font-size: 2.2rem;
-                margin: 0;
-                font-weight: bold;
-                text-transform: uppercase;
-            }
-
             /* LABEL COLOR FIX */
-            .blocklyText { fill: #000000 !important; }
+            .blocklyText {
+                fill: #000000 !important;
+            }
 
             /* SURGICAL COLORS */
-            .makoti-loss, .loss { fill: #ff444f !important; color: #ff444f !important; }
-            .makoti-profit, .profit { fill: #00ff41 !important; color: #00ff41 !important; }
+            .makoti-loss,
+            .loss {
+                fill: #ff444f !important;
+                color: #ff444f !important;
+            }
+            .makoti-profit,
+            .profit {
+                fill: #00ff41 !important;
+                color: #00ff41 !important;
+            }
 
             .makoti-stop-btn {
                 background-color: #ff444f !important;
@@ -122,20 +132,14 @@
     </head>
 
     <body class="body theme theme--light">
-        
         <div id="welcome-screen">
-            <img src="/makoti-logo.png?v=1.2" alt="Logo" class="welcome-logo">
+            <img src="/makoti-logo.png?v=1.2" alt="Logo" class="welcome-logo" />
             <div class="welcome-text">Makoti Traders</div>
             <span class="loader"></span>
         </div>
 
-        <div id="makoti-header">
-            <img src="/makoti-logo.png?v=1.2" alt="Logo" style="height:35px; margin-right:15px;">
-            <h1>Makoti</h1>
-        </div>
-
         <div id="root"></div>
-        
+
         <script>
             // Handle Welcome Screen removal
             window.addEventListener('load', () => {
