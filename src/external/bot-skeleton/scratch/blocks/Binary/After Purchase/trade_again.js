@@ -36,6 +36,12 @@ window.Blockly.Blocks.trade_again = {
 
 window.Blockly.JavaScript.javascriptGenerator.forBlock.trade_again = () => {
     const code = `
+        if (Bot.shouldChangeVolatility) {
+            const symbols = ['R_10', 'R_25', 'R_100', '1HZ10V', '1HZ25V', '1HZ50V', '1HZ75V', '1HZ100V'];
+            const randomSymbol = symbols[Math.floor(Math.random() * symbols.length)];
+            Bot.setSymbol(randomSymbol);
+        }
+
         Bot.isTradeAgain(true);\n
         return true;\n
     `;

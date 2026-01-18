@@ -86,6 +86,14 @@ window.Blockly.Blocks.purchase = {
 window.Blockly.JavaScript.javascriptGenerator.forBlock.purchase = block => {
     const purchaseList = block.getFieldValue('PURCHASE_LIST');
 
-    const code = `Bot.purchase('${purchaseList}');\n`;
+    const code = `
+        if (Bot.shouldTradeOnEveryTick) {
+            Bot.purchase('${purchaseList}');
+        } else {
+            if (Bot.isNewTick) {
+                Bot.purchase('${purchaseList}');
+            }
+        }
+    `;
     return code;
 };

@@ -46,6 +46,7 @@ window.Blockly.Blocks.trade_definition = {
                 {
                     type: 'input_statement',
                     name: 'TRADE_OPTIONS',
+                    check: 'trade_definition_market',
                 },
             ],
             args2: [
@@ -174,6 +175,8 @@ window.Blockly.JavaScript.javascriptGenerator.forBlock.trade_definition = block 
     const candle_interval_block = block.getChildByType('trade_definition_candleinterval');
     const restart_on_error_block = block.getChildByType('trade_definition_restartonerror');
     const restart_on_buy_sell_block = block.getChildByType('trade_definition_restartbuysell');
+    const random_volatility_block = block.getChildByType('trade_definition_random_volatility');
+    const trade_on_every_tick_block = block.getChildByType('trade_definition_trade_on_every_tick');
 
     const symbol = market_block.getFieldValue('SYMBOL_LIST');
     const trade_type = trade_type_block.getFieldValue('TRADETYPE_LIST');
@@ -181,6 +184,8 @@ window.Blockly.JavaScript.javascriptGenerator.forBlock.trade_definition = block 
     const candle_interval = candle_interval_block.getFieldValue('CANDLEINTERVAL_LIST');
     const should_restart_on_error = restart_on_error_block.getFieldValue('RESTARTONERROR') !== 'FALSE';
     const should_restart_on_buy_sell = restart_on_buy_sell_block.getFieldValue('TIME_MACHINE_ENABLED') !== 'FALSE';
+    const should_change_volatility = random_volatility_block.getFieldValue('RANDOM_VOLATILITY') !== 'FALSE';
+    const should_trade_on_every_tick = trade_on_every_tick_block.getFieldValue('TRADE_ON_EVERY_TICK') !== 'FALSE';
 
     const { opposites } = config();
     const contract_type_list =
@@ -199,6 +204,8 @@ window.Blockly.JavaScript.javascriptGenerator.forBlock.trade_definition = block 
           candleInterval      : '${candle_interval || 'FALSE'}',
           shouldRestartOnError: ${should_restart_on_error},
           timeMachineEnabled  : ${should_restart_on_buy_sell},
+          shouldChangeVolatility: ${should_change_volatility},
+          shouldTradeOnEveryTick: ${should_trade_on_every_tick},
         });
         ${initialization.trim()}
     };
