@@ -16,12 +16,9 @@ import { requestOidcAuthentication } from '@deriv-com/auth-client';
 import { Localize, useTranslations } from '@deriv-com/translations';
 import { Header, useDevice, Wrapper } from '@deriv-com/ui';
 import { Tooltip } from '@deriv-com/ui';
-import { AppLogo } from '../app-logo';
 import AccountsInfoLoader from './account-info-loader';
 import AccountSwitcher from './account-switcher';
 import MenuItems from './menu-items';
-import MobileMenu from './mobile-menu';
-import PlatformSwitcher from './platform-switcher';
 import './header.scss';
 
 type TAppHeaderProps = {
@@ -203,6 +200,8 @@ const AppHeader = observer(({ isAuthenticating }: TAppHeaderProps) => {
         is_virtual,
         onRenderTMBCheck,
         is_tmb_enabled,
+        hubEnabledCountryList,
+        isTmbEnabled,
     ]);
 
     if (client?.should_hide_header) return null;
@@ -213,10 +212,7 @@ const AppHeader = observer(({ isAuthenticating }: TAppHeaderProps) => {
                 'app-header--mobile': !isDesktop,
             })}
         >
-            <Wrapper variant='left'>
-                <AppLogo />
-                {isDesktop && <MenuItems />}
-            </Wrapper>
+            <Wrapper variant='left'>{isDesktop && <MenuItems />}</Wrapper>
             <Wrapper variant='right'>
                 {!isDesktop && <PWAInstallButton variant='primary' size='medium' />}
                 {renderAccountSection()}
