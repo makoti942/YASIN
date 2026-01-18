@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import './dcircles.scss';
 
 const volatilities = [
@@ -23,7 +23,6 @@ const Dcircles = () => {
     const [digitsBuffer, setDigitsBuffer] = useState<number[]>([]);
     const [currentDigit, setCurrentDigit] = useState<number | null>(null);
     const [stats, setStats] = useState(Array(10).fill(0));
-    const [pipSize, setPipSize] = useState<number | null>(null);
 
     const ws = useRef<WebSocket | null>(null);
     const subscriptionId = useRef<string | null>(null);
@@ -42,6 +41,7 @@ const Dcircles = () => {
 
         ws.current = new WebSocket('wss://ws.derivws.com/websockets/v3?app_id=101585');
         const websocket = ws.current;
+        let pipSize: number | null = null;
 
         websocket.onopen = () => {
             websocket.send(JSON.stringify({ active_symbols: 'brief', product_type: 'basic' }));
@@ -58,10 +58,21 @@ const Dcircles = () => {
             if (data.msg_type === 'active_symbols') {
                 const symbol = data.active_symbols.find((s: any) => s.symbol === volatility);
                 if (symbol) {
-                    setPipSize(symbol.pip);
-                    // Now that we have pip size, subscribe to ticks
-                    websocket.send(JSON.stringify({ ticks: volatility, subscribe: 1 }));
+                    pipSize = symbol.pip;
+                    websocket.send(JSON.stringify({ ticks_history: volatility, end: 'latest', count: 50, style: 'ticks' }));
                 }
+            }
+
+            if (data.msg_type === 'history') {
+                if (data.history && data.history.prices && pipSize !== null) {
+                    const initialDigits = data.history.prices.map((price: string) => {
+                        const quote = parseFloat(price).toFixed(pipSize!);
+                        return parseInt(quote.slice(-1), 10);
+                    });
+                    setDigitsBuffer(initialDigits);
+                }
+                // Subscribe to live ticks after getting history
+                websocket.send(JSON.stringify({ ticks: volatility, subscribe: 1 }));
             }
 
             if (data.msg_type === 'tick') {
@@ -96,7 +107,7 @@ const Dcircles = () => {
             }
             websocket.removeEventListener('message', onMessage);
         };
-    }, [volatility, pipSize]);
+    }, [volatility]);
 
     useEffect(() => {
         const counts = Array(10).fill(0);
@@ -111,8 +122,7 @@ const Dcircles = () => {
                 const newStats = prevStats.map((val, i) => {
                     const target = targetStats.current[i];
                     const diff = target - val;
-                    // Smooth transition
-                    return val + diff * 0.1;
+                    return val + diff * 0.1; // Smooth transition
                 });
                 return newStats;
             });
@@ -128,6 +138,14 @@ const Dcircles = () => {
         };
     }, []);
 
+    const handleVolatilityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setVolatility(e.target.value);
+        setDigitsBuffer([]);
+        setCurrentDigit(null);
+        setStats(Array(10).fill(0));
+        targetStats.current = Array(10).fill(0);
+    };
+
     const areAllStatsSame = stats.every(val => val.toFixed(2) === stats[0].toFixed(2));
     const maxVal = areAllStatsSame ? -1 : Math.max(...stats);
     const minVal = areAllStatsSame ? -1 : Math.min(...stats);
@@ -135,19 +153,7 @@ const Dcircles = () => {
     return (
         <div className='dcircles-container'>
             <div className='vol-selector-wrapper'>
-                <select
-                    className='deriv-dropdown'
-                    value={volatility}
-                    onChange={e => {
-                        setVolatility(e.target.value);
-                        setDigitsBuffer([]);
-                        setCurrentDigit(null);
-                        setPipSize(null); // Reset pip size on volatility change
-                        if (subscriptionId.current && ws.current?.readyState === WebSocket.OPEN) {
-                            ws.current.send(JSON.stringify({ forget: subscriptionId.current }));
-                        }
-                    }}
-                >
+                <select className='deriv-dropdown' value={volatility} onChange={handleVolatilityChange}>
                     {volatilities.map(v => (
                         <option key={v.id} value={v.id}>
                             {v.name}
