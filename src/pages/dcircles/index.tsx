@@ -127,7 +127,10 @@ const Dcircles = () => {
                 const newStats = prevStats.map((val, i) => {
                     const target = targetStats.current[i];
                     const diff = target - val;
-                    return val + diff * 0.1; // Smooth transition
+                    if (Math.abs(diff) < 0.01) {
+                        return target;
+                    }
+                    return val + diff * 0.05; // Slower transition
                 });
                 return newStats;
             });
@@ -141,7 +144,7 @@ const Dcircles = () => {
                 cancelAnimationFrame(animationFrameId.current);
             }
         };
-    }, [volatility]);
+    }, []);
 
     const areAllStatsSame = stats.every(val => val.toFixed(2) === stats[0].toFixed(2));
     const maxVal = areAllStatsSame ? -1 : Math.max(...stats);
