@@ -59,34 +59,3 @@ registerRoute(
         ],
     })
 );
-
-self.addEventListener('fetch', event => {
-    const url = new URL(event.request.url);
-
-    // Don't care about other-origin URLs
-    if (url.origin !== self.location.origin) return;
-
-    // Don't care about WebSocket connections
-    if (url.protocol === 'ws:' || url.protocol === 'wss:') return;
-
-    // Let the browser do its default thing
-    // for non-GET requests.
-    if (event.request.method !== 'GET') return;
-
-    event.respondWith(
-        caches.match(event.request).then(response => {
-            // Return the cached response if it exists
-            if (response) {
-                return response;
-            }
-            // If the request is not in the cache, fetch it from the network
-            return fetch(event.request).then(networkResponse => {
-                // Cache the fetched response for future use
-                return caches.open('dynamic-cache').then(cache => {
-                    cache.put(event.request, networkResponse.clone());
-                    return networkResponse;
-                });
-            });
-        })
-    );
-});
