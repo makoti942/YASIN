@@ -19,9 +19,7 @@ const volatilities = [
 ];
 
 const Dcircles = () => {
-    const [volatility, setVolatility] = useState(() => {
-        return localStorage.getItem('selectedVolatility') || '1HZ10V';
-    });
+    const [volatility, setVolatility] = useState('1HZ10V');
     const [digitsBuffer, setDigitsBuffer] = useState<number[]>([]);
     const [currentDigit, setCurrentDigit] = useState<number | null>(null);
     const [stats, setStats] = useState(Array(10).fill(0));
@@ -31,6 +29,13 @@ const Dcircles = () => {
     const subscriptionId = useRef<string | null>(null);
     const targetStats = useRef(Array(10).fill(0));
     const animationFrameId = useRef<number | null>(null);
+
+    useEffect(() => {
+        const savedVolatility = localStorage.getItem('selectedVolatility');
+        if (savedVolatility) {
+            setVolatility(savedVolatility);
+        }
+    }, []);
 
     useEffect(() => {
         localStorage.setItem('selectedVolatility', volatility);
@@ -159,11 +164,11 @@ const Dcircles = () => {
 
                     return (
                         <div key={digit} className='digit-unit'>
-                            <div className={\`arrow-indicator \${currentDigit === digit ? 'active' : ''}\`}>🔽</div>
-                            <div className={\`circle-shape \${colorClass} \${currentDigit === digit ? 'hitting' : ''}\`}>
+                            <div className={`arrow-indicator ${currentDigit === digit ? 'active' : ''}`}>🔽</div>
+                            <div className={`circle-shape ${colorClass} ${currentDigit === digit ? 'hitting' : ''}`}>
                                 {digit}
                             </div>
-                            <div className={\`percent-label \${colorClass}\`}>{percentage.toFixed(2)}%</div>
+                            <div className={`percent-label ${colorClass}`}>{percentage.toFixed(2)}%</div>
                         </div>
                     );
                 })}
