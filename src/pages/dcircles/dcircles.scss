@@ -19,7 +19,7 @@
 
 .circles-layout {
     display: grid;
-    grid-template-columns: repeat(10, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
     gap: 10px;
     width: 100%;
     max-width: 1000px;
@@ -78,17 +78,4 @@
 
 .percent-label.is-least {
     color: #DC143C;
-}
-
-/* Responsive styles for mobile */
-@media (max-width: 768px) {
-    .circles-layout {
-        grid-template-columns: repeat(5, 1fr);
-    }
-}
-
-@media (max-width: 480px) {
-    .circles-layout {
-        grid-template-columns: repeat(2, 1fr);
-    }
 }
