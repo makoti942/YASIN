@@ -66,11 +66,21 @@
     font-size: 24px;
     color: white;
     background-color: #666;
-    transition: transform 0.2s;
+    transition: transform 0.2s, box-shadow 0.3s;
 }
 
 .circle-shape.hitting {
     transform: scale(1.1);
+}
+
+.circle-shape.is-most {
+    background-color: #2E8B57;
+    box-shadow: 0 0 15px 5px rgba(46, 139, 87, 0.7);
+}
+
+.circle-shape.is-least {
+    background-color: #DC143C;
+    box-shadow: 0 0 15px 5px rgba(220, 20, 60, 0.7);
 }
 
 .percent-label {

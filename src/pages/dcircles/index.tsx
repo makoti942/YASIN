@@ -15,8 +15,6 @@ const volatilities = [
     { id: '1HZ100V', name: 'Volatility 100 (1s) Index' },
 ];
 
-const DAMPING_FACTOR = 0.2;
-const BASE_PERCENTAGE = 10;
 const MAX_CHANGE = 0.02;
 const HISTORY_COUNT = 100;
 
@@ -24,11 +22,11 @@ const Dcircles = () => {
     const [volatility, setVolatility] = useState('1HZ10V');
     const [digitsBuffer, setDigitsBuffer] = useState<number[]>([]);
     const [currentDigit, setCurrentDigit] = useState<number | null>(null);
-    const [stats, setStats] = useState(Array(10).fill(BASE_PERCENTAGE));
+    const [stats, setStats] = useState(Array(10).fill(10));
 
     const ws = useRef<WebSocket | null>(null);
     const subscriptionId = useRef<string | null>(null);
-    const targetStats = useRef(Array(10).fill(BASE_PERCENTAGE));
+    const targetStats = useRef(Array(10).fill(10));
     const animationFrameId = useRef<number | null>(null);
     const pipSize = useRef<number | null>(null);
 
@@ -48,8 +46,8 @@ const Dcircles = () => {
 
         setCurrentDigit(null);
         setDigitsBuffer([]);
-        setStats(Array(10).fill(BASE_PERCENTAGE));
-        targetStats.current = Array(10).fill(BASE_PERCENTAGE);
+        setStats(Array(10).fill(10));
+        targetStats.current = Array(10).fill(10);
         subscriptionId.current = null;
         pipSize.current = null;
 
@@ -103,7 +101,7 @@ const Dcircles = () => {
                     const counts = Array(10).fill(0);
                     initialDigits.forEach(d => counts[d]++);
                     const total = initialDigits.length;
-                    const initialPercentages = total === 0 ? Array(10).fill(BASE_PERCENTAGE) : counts.map(c => BASE_PERCENTAGE + ((c / total) * 100 - BASE_PERCENTAGE) * DAMPING_FACTOR);
+                    const initialPercentages = total === 0 ? Array(10).fill(10) : counts.map(c => (c / total) * 100);
                     setStats(initialPercentages);
                     targetStats.current = initialPercentages;
                 }
@@ -129,7 +127,7 @@ const Dcircles = () => {
         const counts = Array(10).fill(0);
         digitsBuffer.forEach(d => counts[d]++);
         const total = digitsBuffer.length;
-        targetStats.current = total === 0 ? Array(10).fill(BASE_PERCENTAGE) : counts.map(c => BASE_PERCENTAGE + ((c / total) * 100 - BASE_PERCENTAGE) * DAMPING_FACTOR);
+        targetStats.current = total === 0 ? Array(10).fill(10) : counts.map(c => (c / total) * 100);
     }, [digitsBuffer]);
 
     useEffect(() => {
@@ -172,7 +170,7 @@ const Dcircles = () => {
         return (
             <div key={digit} className='digit-unit'>
                 <div className={`arrow-indicator ${currentDigit === digit ? 'active' : ''}`}>{currentDigit === digit ? '▼' : ''}</div>
-                <div className={`circle-shape ${currentDigit === digit ? 'hitting' : ''}`}>
+                <div className={`circle-shape ${colorClass} ${currentDigit === digit ? 'hitting' : ''}`}>
                     {digit}
                 </div>
                 <div className={`percent-label ${colorClass}`}>{percentage.toFixed(2)}%</div>
