@@ -1,22 +1,22 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Localize } from '@deriv/translations';
+import { Localize } from '@deriv-com/translations';
 import './dcircles.scss';
 
 const volatilities = [
-    { id: 'R_10', name: <Localize i18n_default_text='Volatility 10 Index' /> },
-    { id: 'R_25', name: <Localize i18n_default_text='Volatility 25 Index' /> },
-    { id: 'R_50', name: <Localize i18n_default_text='Volatility 50 Index' /> },
-    { id: 'R_75', name: <Localize i18n_default_text='Volatility 75 Index' /> },
-    { id: 'R_100', name: <Localize i18n_default_text='Volatility 100 Index' /> },
-    { id: '1HZ10V', name: <Localize i18n_default_text='Volatility 10 (1s) Index' /> },
-    { id: '1HZ25V', name: <Localize i18n_default_text='Volatility 25 (1s) Index' /> },
-    { id: '1HZ50V', name: <Localize i18n_default_text='Volatility 50 (1s) Index' /> },
-    { id: '1HZ75V', name: <Localize i18n_default_text='Volatility 75 (1s) Index' /> },
-    { id: '1HZ100V', name: <Localize i18n_default_text='Volatility 100 (1s) Index' /> },
-    { id: '1HZ150V', name: <Localize i18n_default_text='Volatility 150 (1s) Index' /> },
-    { id: '1HZ200V', name: <Localize i18n_default_text='Volatility 200 (1s) Index' /> },
-    { id: '1HZ250V', name: <Localize i18n_default_text='Volatility 250 (1s) Index' /> },
-    { id: '1HZ300V', name: <Localize i18n_default_text='Volatility 300 (1s) Index' /> },
+    { id: 'R_10', name: 'Volatility 10 Index' },
+    { id: 'R_25', name: 'Volatility 25 Index' },
+    { id: 'R_50', name: 'Volatility 50 Index' },
+    { id: 'R_75', name: 'Volatility 75 Index' },
+    { id: 'R_100', name: 'Volatility 100 Index' },
+    { id: '1HZ10V', name: 'Volatility 10 (1s) Index' },
+    { id: '1HZ25V', name: 'Volatility 25 (1s) Index' },
+    { id: '1HZ50V', name: 'Volatility 50 (1s) Index' },
+    { id: '1HZ75V', name: 'Volatility 75 (1s) Index' },
+    { id: '1HZ100V', name: 'Volatility 100 (1s) Index' },
+    { id: '1HZ150V', name: 'Volatility 150 (1s) Index' },
+    { id: '1HZ200V', name: 'Volatility 200 (1s) Index' },
+    { id: '1HZ250V', name: 'Volatility 250 (1s) Index' },
+    { id: '1HZ300V', name: 'Volatility 300 (1s) Index' },
 ];
 
 const Dcircles = () => {
@@ -53,12 +53,14 @@ const Dcircles = () => {
         setStats(Array(10).fill(0));
         targetStats.current = Array(10).fill(0);
         subscriptionId.current = null;
+        pipSize.current = null; // Reset pip size on volatility change
 
         ws.current = new WebSocket('wss://ws.derivws.com/websockets/v3?app_id=101585');
         const websocket = ws.current;
 
         websocket.onopen = () => {
-            websocket.send(JSON.stringify({ active_symbols: 'brief', product_type: 'basic' }));
+            // Subscribe to ticks immediately
+            websocket.send(JSON.stringify({ ticks: volatility, subscribe: 1 }));
         };
 
         const onMessage = (event: MessageEvent) => {
@@ -69,13 +71,29 @@ const Dcircles = () => {
                 return;
             }
 
-            if (data.msg_type === 'active_symbols') {
-                const symbol = data.active_symbols.find((s: any) => s.symbol === volatility);
-                if (symbol) {
-                    const pipString = String(symbol.pip);
-                    const fractionalPart = pipString.split('.')[1];
-                    pipSize.current = fractionalPart ? fractionalPart.length : 0;
-                    websocket.send(JSON.stringify({ ticks_history: volatility, end: 'latest', count: 50, style: 'ticks' }));
+            if (data.msg_type === 'tick') {
+                if (data.subscription) {
+                    subscriptionId.current = data.subscription.id;
+                }
+
+                if (data.tick) {
+                    // First tick response will have pip_size
+                    if (pipSize.current === null && data.tick.pip_size !== undefined) {
+                        pipSize.current = data.tick.pip_size;
+                        // Now that we have pip_size, get history
+                        websocket.send(JSON.stringify({ ticks_history: volatility, end: 'latest', count: 50, style: 'ticks' }));
+                    }
+
+                    if (pipSize.current !== null) {
+                        const quote = parseFloat(data.tick.quote).toFixed(pipSize.current);
+                        const lastDigit = parseInt(quote.slice(-1), 10);
+
+                        setCurrentDigit(lastDigit);
+                        setDigitsBuffer(prev => {
+                            const newBuffer = [...prev, lastDigit];
+                            return newBuffer.length > 50 ? newBuffer.slice(-50) : newBuffer;
+                        });
+                    }
                 }
             }
 
@@ -86,24 +104,6 @@ const Dcircles = () => {
                         return parseInt(quote.slice(-1), 10);
                     });
                     setDigitsBuffer(initialDigits);
-                }
-                websocket.send(JSON.stringify({ ticks: volatility, subscribe: 1 }));
-            }
-
-            if (data.msg_type === 'tick') {
-                if (data.subscription) {
-                    subscriptionId.current = data.subscription.id;
-                }
-
-                if (data.tick && pipSize.current !== null) {
-                    const quote = data.tick.quote.toFixed(pipSize.current);
-                    const lastDigit = parseInt(quote.slice(-1), 10);
-
-                    setCurrentDigit(lastDigit);
-                    setDigitsBuffer(prev => {
-                        const newBuffer = [...prev, lastDigit];
-                        return newBuffer.length > 50 ? newBuffer.slice(-50) : newBuffer;
-                    });
                 }
             }
         };
@@ -163,7 +163,7 @@ const Dcircles = () => {
                 <select className='deriv-dropdown' value={volatility} onChange={e => setVolatility(e.target.value)}>
                     {volatilities.map(v => (
                         <option key={v.id} value={v.id}>
-                            {v.name}
+                            <Localize i18n_default_text={v.name} />
                         </option>
                     ))}
                 </select>
