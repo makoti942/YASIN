@@ -46,13 +46,12 @@ const Dcircles = () => {
         setStats(Array(10).fill(0));
         targetStats.current = Array(10).fill(0);
         subscriptionId.current = null;
-        pipSize.current = null; // Reset pip size on volatility change
+        pipSize.current = null; 
 
         ws.current = new WebSocket('wss://ws.derivws.com/websockets/v3?app_id=101585');
         const websocket = ws.current;
 
         websocket.onopen = () => {
-            // Subscribe to ticks immediately
             websocket.send(JSON.stringify({ ticks: volatility, subscribe: 1 }));
         };
 
@@ -70,10 +69,8 @@ const Dcircles = () => {
                 }
 
                 if (data.tick) {
-                    // First tick response will have pip_size
                     if (pipSize.current === null && data.tick.pip_size !== undefined) {
                         pipSize.current = data.tick.pip_size;
-                        // Now that we have pip_size, get history
                         websocket.send(JSON.stringify({ ticks_history: volatility, end: 'latest', count: 50, style: 'ticks' }));
                     }
 
@@ -130,7 +127,7 @@ const Dcircles = () => {
                     if (Math.abs(diff) < 0.01) {
                         return target;
                     }
-                    return val + diff * 0.05; // Slower transition
+                    return val + diff * 0.02; // Smoother and slower transition
                 });
                 return newStats;
             });
@@ -150,6 +147,22 @@ const Dcircles = () => {
     const maxVal = areAllStatsSame ? -1 : Math.max(...stats);
     const minVal = areAllStatsSame ? -1 : Math.min(...stats);
 
+    const renderDigit = (digit: number, percentage: number) => {
+        const isMax = !areAllStatsSame && percentage === maxVal;
+        const isMin = !areAllStatsSame && percentage === minVal;
+        const colorClass = isMax ? 'is-most' : isMin ? 'is-least' : '';
+
+        return (
+            <div key={digit} className='digit-unit'>
+                <div className={`arrow-indicator ${currentDigit === digit ? 'active' : ''}`}>{currentDigit === digit ? '▼' : ''}</div>
+                <div className={`circle-shape ${currentDigit === digit ? 'hitting' : ''}`}>
+                    {digit}
+                </div>
+                <div className={`percent-label ${colorClass}`}>{percentage.toFixed(2)}%</div>
+            </div>
+        );
+    };
+
     return (
         <div className='dcircles-container'>
             <div className='vol-selector-wrapper'>
@@ -163,21 +176,12 @@ const Dcircles = () => {
             </div>
 
             <div className='circles-layout'>
-                {stats.map((percentage, digit) => {
-                    const isMax = !areAllStatsSame && percentage === maxVal;
-                    const isMin = !areAllStatsSame && percentage === minVal;
-                    const colorClass = isMax ? 'is-most' : isMin ? 'is-least' : '';
-
-                    return (
-                        <div key={digit} className='digit-unit'>
-                            <div className={`arrow-indicator ${currentDigit === digit ? 'active' : ''}`}>🔽</div>
-                            <div className={`circle-shape ${colorClass} ${currentDigit === digit ? 'hitting' : ''}`}>
-                                {digit}
-                            </div>
-                            <div className={`percent-label ${colorClass}`}>{percentage.toFixed(2)}%</div>
-                        </div>
-                    );
-                })}
+                <div className='circles-row'>
+                    {stats.slice(0, 6).map((percentage, digit) => renderDigit(digit, percentage))}
+                </div>
+                <div className='circles-row'>
+                    {stats.slice(6, 10).map((percentage, index) => renderDigit(index + 6, percentage))}
+                </div>
             </div>
         </div>
     );
