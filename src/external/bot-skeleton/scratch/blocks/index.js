@@ -11,6 +11,8 @@ import './Binary/Tools/Candle';
 import './Binary/Tools/Misc';
 import './Binary/Tools/Time';
 import './Binary/Trade Definition';
+import './Binary/Trade Definition/trade_definition_random_volatility';
+import './Binary/Trade Definition/trade_definition_trade_on_every_tick';
 import './Logic';
 import './Math';
 import './Text';
