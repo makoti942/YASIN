@@ -1,103 +1,94 @@
 .dcircles-container {
-  background: #0b0e11;
-  padding: 50px 20px;
-  border-radius: 10px;
-  color: white;
-  font-family: Arial, sans-serif;
-
-  .vol-selector-wrapper {
-    margin-bottom: 60px;
-    display: flex;
-    justify-content: center;
-
-    .deriv-dropdown {
-      width: 100%;
-      max-width: 300px;
-      padding: 12px;
-      background: #1e222d !important; // Forced visibility
-      color: white !important;         // Forced visibility
-      border: 1px solid #363a45;
-      border-radius: 4px;
-      font-size: 16px;
-      cursor: pointer;
-
-      option {
-        background: #1e222d;
-        color: white;
-      }
-    }
-  }
-
-  .circles-layout {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 30px;
-    row-gap: 50px;
-
-    @media (max-width: 600px) {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-
-  .digit-unit {
     display: flex;
     flex-direction: column;
     align-items: center;
-    position: relative;
-  }
-
-  .arrow-indicator {
-    height: 35px;
-    font-size: 24px;
-    opacity: 0;
-    transform: translateY(10px);
-    transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
-
-    &.active {
-      opacity: 1;
-      transform: translateY(0);
-      animation: bounce 0.6s infinite alternate;
-    }
-  }
-
-  .circle-shape {
-    width: 65px;
-    height: 65px;
-    border-radius: 50%;
-    border: 3px solid #2a2e39;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 26px;
-    font-weight: bold;
-    background: #131722;
-    transition: 0.2s;
-
-    &.is-most { border-color: #00c853; color: #00c853; } // Green
-    &.is-least { border-color: #ff5252; color: #ff5252; } // Red
-    
-    // Highlight when digit appears
-    &.hitting {
-      background: white;
-      color: black;
-      border-color: white;
-      transform: scale(1.1);
-      box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
-    }
-  }
-
-  .percent-label {
-    margin-top: 15px;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 15px;
-    color: #848e9c;
-
-    &.is-most { color: #00c853; font-weight: bold; }
-    &.is-least { color: #ff5252; font-weight: bold; }
-  }
+    padding: 20px;
+    box-sizing: border-box;
 }
 
-@keyframes bounce {
-  from { transform: translateY(0); }
-  to { transform: translateY(6px); }
+.vol-selector-wrapper {
+    margin-bottom: 20px;
+}
+
+.deriv-dropdown {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+}
+
+.circles-layout {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 10px;
+    width: 100%;
+    max-width: 1000px;
+}
+
+.digit-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.arrow-indicator {
+    font-size: 24px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.arrow-indicator.active {
+    opacity: 1;
+}
+
+.circle-shape {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    color: white;
+    background-color: #666;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.circle-shape.hitting {
+    transform: scale(1.1);
+}
+
+.circle-shape.is-most {
+    background-color: #2E8B57; /* SeaGreen */
+}
+
+.circle-shape.is-least {
+    background-color: #DC143C; /* Crimson */
+}
+
+.percent-label {
+    margin-top: 5px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.percent-label.is-most {
+    color: #2E8B57;
+}
+
+.percent-label.is-least {
+    color: #DC143C;
+}
+
+/* Responsive styles for mobile */
+@media (max-width: 768px) {
+    .circles-layout {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .circles-layout {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }

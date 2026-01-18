@@ -51,7 +51,6 @@ const Dcircles = () => {
         setDigitsBuffer([]);
         setStats(Array(10).fill(0));
         targetStats.current = Array(10).fill(0);
-        pipSize.current = null;
         subscriptionId.current = null;
 
         ws.current = new WebSocket('wss://ws.derivws.com/websockets/v3?app_id=101585');
@@ -72,18 +71,18 @@ const Dcircles = () => {
             if (data.msg_type === 'active_symbols') {
                 const symbol = data.active_symbols.find((s: any) => s.symbol === volatility);
                 if (symbol) {
-                    const pipString = String(symbol.pip);
-                    const fractionalPart = pipString.split('.')[1];
-                    pipSize.current = fractionalPart ? fractionalPart.length : 0;
+                    pipSize.current = -Math.log10(symbol.pip);
                     websocket.send(JSON.stringify({ ticks_history: volatility, end: 'latest', count: 50, style: 'ticks' }));
                 }
             }
 
             if (data.msg_type === 'history') {
-                if (data.history && data.history.prices && pipSize.current !== null) {
+                if (data.history && data.history.prices && typeof pipSize.current === 'number') {
                     const initialDigits = data.history.prices.map((price: string) => {
-                        const quote = parseFloat(price).toFixed(pipSize.current!);
-                        return parseInt(quote.slice(-1), 10);
+                        const quote = parseFloat(price);
+                        const multiplier = Math.pow(10, pipSize.current!);
+                        const lastDigit = Math.floor((quote * multiplier) % 10);
+                        return lastDigit;
                     });
                     setDigitsBuffer(initialDigits);
                 }
@@ -95,9 +94,10 @@ const Dcircles = () => {
                     subscriptionId.current = data.subscription.id;
                 }
 
-                if (data.tick && pipSize.current !== null) {
-                    const quote = data.tick.quote.toFixed(pipSize.current);
-                    const lastDigit = parseInt(quote.slice(-1), 10);
+                if (data.tick && typeof pipSize.current === 'number') {
+                    const quote = data.tick.quote;
+                    const multiplier = Math.pow(10, pipSize.current);
+                    const lastDigit = Math.floor((quote * multiplier) % 10);
 
                     setCurrentDigit(lastDigit);
                     setDigitsBuffer(prev => {
