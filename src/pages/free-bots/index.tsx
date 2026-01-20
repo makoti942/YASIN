@@ -118,6 +118,14 @@ const BOTS: Bot[] = [
         category: 'Even/Odd',
         icon: '🎲',
     },
+    {
+        id: '14',
+        name: 'MAKOTI ADVANCED',
+        description: 'A bot that uses a martingale strategy with recovery mode.',
+        fileName: 'makoti_advanced.xml',
+        category: 'Speed Trading',
+        icon: '⚡️',
+    }
 ];
 
 const FreeBots = observer(() => {

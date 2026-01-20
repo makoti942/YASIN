@@ -1,0 +1,119 @@
+<xml xmlns="http://www.w3.org/1999/xhtml" collection="false">
+  <variables>
+    <variable type="" id="stake">Stake</variable>
+    <variable type="" id="initial_stake">Initial Stake</variable>
+    <variable type="" id="martingale">Martingale Factor</variable>
+    <variable type="" id="is_recovery">is_recovery</variable>
+  </variables>
+  <block type="trade_definition" id="trade_def" x="0" y="0">
+    <statement name="TRADE_OPTIONS">
+      <block type="trade_definition_market" id="market_def">
+        <field name="MARKET_LIST">synthetic_index</field>
+        <field name="SUBMARKET_LIST">random_index</field>
+        <field name="SYMBOL_LIST">1HZ100V</field>
+        <next>
+          <block type="trade_definition_tradetype" id="trade_type">
+            <field name="TRADETYPECAT_LIST">callput</field>
+            <field name="TRADETYPE_LIST">callput</field>
+            <next>
+              <block type="trade_definition_contracttype" id="contract_type">
+                <field name="TYPE_LIST">both</field>
+                <next>
+                  <block type="trade_definition_candleinterval" id="candle_interval">
+                    <field name="CANDLEINTERVAL_LIST">60</field>
+                    <next>
+                      <block type="trade_definition_restartbuysell" id="restart_buy">
+                        <field name="TIME_MACHINE_ENABLED">FALSE</field>
+                        <next>
+                          <block type="trade_definition_restartonerror" id="restart_error">
+                            <field name="RESTARTONERROR">TRUE</field>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+    <statement name="INITIALIZATION">
+      <block type="variables_set" id="i1"><field name="VAR" id="stake" variabletype="">Stake</field><value name="VALUE"><block type="math_number" id="v1"><field name="NUM">0.35</field></block></value>
+      <next><block type="variables_set" id="i2"><field name="VAR" id="initial_stake" variabletype="">Initial Stake</field><value name="VALUE"><block type="math_number" id="v2"><field name="NUM">0.35</field></block></value>
+      <next><block type="variables_set" id="i3"><field name="VAR" id="martingale" variabletype="">Martingale Factor</field><value name="VALUE"><block type="math_number" id="v3"><field name="NUM">2.1</field></block></value>
+      <next><block type="variables_set" id="i4"><field name="VAR" id="is_recovery" variabletype="">is_recovery</field><value name="VALUE"><block type="logic_boolean" id="v4"><field name="BOOL">FALSE</field></block></value></block></next></block></next></block></next></block>
+    </statement>
+    <statement name="SUBMARKET">
+      <block type="trade_definition_tradeoptions" id="opts">
+        <value name="DURATION"><block type="math_number" id="d1"><field name="NUM">1</field></block></value>
+        <field name="DURATIONTYPE_LIST">t</field>
+        <value name="AMOUNT"><block type="variables_get" id="g1"><field name="VAR" id="stake" variabletype="">Stake</field></block></value>
+      </block>
+    </statement>
+  </block>
+
+  <block type="before_purchase" id="bp1" x="0" y="650">
+    <statement name="BEFOREPURCHASE_STACK">
+      <block type="controls_if" id="logic_switch">
+        <mutation else="1"></mutation>
+        <value name="IF0">
+          <block type="variables_get" id="gv1"><field name="VAR" id="is_recovery" variabletype="">is_recovery</field></block>
+        </value>
+        <statement name="DO0">
+          <block type="notify" id="n1"><field name="NOTIFICATION_TYPE">warn</field><value name="MESSAGE"><shadow type="text" id="t1"><field name="TEXT">Recovery Mode: Waiting for 3 Ticks...</field></shadow></value>
+          <next>
+            <block type="controls_if" id="c_rec">
+              <mutation elseif="1"></mutation>
+              <value name="IF0">
+                <block type="logic_operation" id="and3u" inline="false"><field name="OP">AND</field>
+                  <value name="A"><block type="logic_compare" id="r1"><field name="OP">GT</field><value name="A"><block type="tick" id="tk1"></block></value><value name="B"><block type="lists_getIndex" id="li1"><mutation statement="false" at="true"></mutation><field name="MODE">GET</field><field name="WHERE">FROM_END</field><value name="VALUE"><block type="ticks" id="ts1"></block></value><value name="AT"><block type="math_number" id="n11"><field name="NUM">2</field></block></value></block></value></block></value>
+                  <value name="B"><block type="logic_compare" id="r2"><field name="OP">GT</field><value name="A"><block type="lists_getIndex" id="li2"><mutation statement="false" at="true"></mutation><field name="MODE">GET</field><field name="WHERE">FROM_END</field><value name="VALUE"><block type="ticks" id="ts2"></block></value><value name="AT"><block type="math_number" id="n12"><field name="NUM">2</field></block></value></block></value><value name="B"><block type="lists_getIndex" id="li3"><mutation statement="false" at="true"></mutation><field name="MODE">GET</field><field name="WHERE">FROM_END</field><value name="VALUE"><block type="ticks" id="ts3"></block></value><value name="AT"><block type="math_number" id="n13"><field name="NUM">3</field></block></value></block></value></block></value>
+                </block>
+              </value>
+              <statement name="DO0"><block type="purchase" id="p1"><field name="PURCHASE_LIST">PUT</field></block></statement>
+              <value name="IF1">
+                <block type="logic_operation" id="and3d" inline="false"><field name="OP">AND</field>
+                  <value name="A"><block type="logic_compare" id="r3"><field name="OP">LT</field><value name="A"><block type="tick" id="tk2"></block></value><value name="B"><block type="lists_getIndex" id="li4"><mutation statement="false" at="true"></mutation><field name="MODE">GET</field><field name="WHERE">FROM_END</field><value name="VALUE"><block type="ticks" id="ts4"></block></value><value name="AT"><block type="math_number" id="n14"><field name="NUM">2</field></block></value></block></value></block></value>
+                  <value name="B"><block type="logic_compare" id="r4"><field name="OP">LT</field><value name="A"><block type="lists_getIndex" id="li5"><mutation statement="false" at="true"></mutation><field name="MODE">GET</field><field name="WHERE">FROM_END</field><value name="VALUE"><block type="ticks" id="ts5"></block></value><value name="AT"><block type="math_number" id="n15"><field name="NUM">2</field></block></value></block></value><value name="B"><block type="lists_getIndex" id="li6"><mutation statement="false" at="true"></mutation><field name="MODE">GET</field><field name="WHERE">FROM_END</field><value name="VALUE"><block type="ticks" id="ts6"></block></value><value name="AT"><block type="math_number" id="n16"><field name="NUM">3</field></block></value></block></value></block></value>
+                </block>
+              </value>
+              <statement name="DO1"><block type="purchase" id="p2"><field name="PURCHASE_LIST">CALL</field></block></statement>
+            </block>
+          </next></block>
+        </statement>
+        <statement name="ELSE">
+          <block type="notify" id="n2"><field name="NOTIFICATION_TYPE">info</field><value name="MESSAGE"><shadow type="text" id="t2"><field name="TEXT">Normal Mode: Waiting for 2 Ticks...</field></shadow></value>
+          <next>
+            <block type="controls_if" id="c_norm">
+              <mutation elseif="1"></mutation>
+              <value name="IF0"><block type="logic_compare" id="r5"><field name="OP">GT</field><value name="A"><block type="tick" id="tk3"></block></value><value name="B"><block type="lists_getIndex" id="li7"><mutation statement="false" at="true"></mutation><field name="MODE">GET</field><field name="WHERE">FROM_END</field><value name="VALUE"><block type="ticks" id="ts7"></block></value><value name="AT"><block type="math_number" id="n17"><field name="NUM">2</field></block></value></block></value></block></value>
+              <statement name="DO0"><block type="purchase" id="p3"><field name="PURCHASE_LIST">PUT</field></block></statement>
+              <value name="IF1"><block type="logic_compare" id="r6"><field name="OP">LT</field><value name="A"><block type="tick" id="tk4"></block></value><value name="B"><block type="lists_getIndex" id="li8"><mutation statement="false" at="true"></mutation><field name="MODE">GET</field><field name="WHERE">FROM_END</field><value name="VALUE"><block type="ticks" id="ts8"></block></value><value name="AT"><block type="math_number" id="n18"><field name="NUM">2</field></block></value></block></value></block></value>
+              <statement name="DO1"><block type="purchase" id="p4"><field name="PURCHASE_LIST">CALL</field></block></statement>
+            </block>
+          </next></block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+
+  <block type="after_purchase" id="ap1" x="0" y="1300">
+    <statement name="AFTERPURCHASE_STACK">
+      <block type="controls_if" id="res">
+        <mutation else="1"></mutation>
+        <value name="IF0"><block type="contract_check_result" id="win"><field name="CHECK_RESULT">win</field></block></value>
+        <statement name="DO0">
+          <block type="variables_set" id="s1"><field name="VAR" id="stake" variabletype="">Stake</field><value name="VALUE"><block type="variables_get" id="g2"><field name="VAR" id="initial_stake" variabletype="">Initial Stake</field></block></value>
+          <next><block type="variables_set" id="s2"><field name="VAR" id="is_recovery" variabletype="">is_recovery</field><value name="VALUE"><block type="logic_boolean" id="v5"><field name="BOOL">FALSE</field></block></value></block></next></block>
+        </statement>
+        <statement name="ELSE">
+          <block type="variables_set" id="s3"><field name="VAR" id="stake" variabletype="">Stake</field><value name="VALUE"><block type="math_arithmetic" id="m1"><field name="OP">MULTIPLY</field><value name="A"><block type="variables_get" id="g3"><field name="VAR" id="stake" variabletype="">Stake</field></block></value><value name="B"><block type="variables_get" id="g4"><field name="VAR" id="martingale" variabletype="">Martingale Factor</field></block></value></block></value>
+          <next><block type="variables_set" id="s4"><field name="VAR" id="is_recovery" variabletype="">is_recovery</field><value name="VALUE"><block type="logic_boolean" id="v6"><field name="BOOL">TRUE</field></block></value></block></next></block>
+        </statement>
+        <next><block type="trade_again" id="ta1"></block></next>
+      </block>
+    </statement>
+  </block>
+</xml>
