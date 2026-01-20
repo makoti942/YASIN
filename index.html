@@ -6,6 +6,7 @@
         <link rel="apple-touch-icon" href="/makoti-logo.png?v=1.2" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
         <title>MAKOTI TRADERS</title>
+        <link rel="manifest" href="/manifest.json" />
 
         <style>
             :root {
@@ -141,6 +142,52 @@
         <div id="root"></div>
 
         <script>
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/sw.js').then(
+                        registration => {
+                            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                        },
+                        err => {
+                            console.log('ServiceWorker registration failed: ', err);
+                        }
+                    );
+                });
+            }
+
+            let deferredPrompt;
+            const installButton = document.createElement('button');
+            installButton.style.position = 'fixed';
+            installButton.style.bottom = '1rem';
+            installButton.style.right = '1rem';
+            installButton.style.padding = '1rem 2rem';
+            installButton.style.backgroundColor = '#00d9ff';
+            installButton.style.color = 'black';
+            installButton.style.border = 'none';
+            installButton.style.borderRadius = '5px';
+            installButton.style.cursor = 'pointer';
+            installButton.textContent = 'Install App';
+            installButton.style.display = 'none';
+            document.body.appendChild(installButton);
+
+            window.addEventListener('beforeinstallprompt', e => {
+                e.preventDefault();
+                deferredPrompt = e;
+                installButton.style.display = 'block';
+
+                installButton.addEventListener('click', () => {
+                    installButton.style.display = 'none';
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then(choiceResult => {
+                        if (choiceResult.outcome === 'accepted') {
+                            console.log('User accepted the A2HS prompt');
+                        } else {
+                            console.log('User dismissed the A2HS prompt');
+                        }
+                        deferredPrompt = null;
+                    });
+                });
+            });
             // Handle Welcome Screen removal
             window.addEventListener('load', () => {
                 const splash = document.getElementById('welcome-screen');
