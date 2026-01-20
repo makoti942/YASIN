@@ -75,7 +75,7 @@
             }
 
             &__list {
-                background: var(--general-section-1);
+                background: blue;
                 justify-content: start;
 
                 @include mobile-or-tablet-screen {

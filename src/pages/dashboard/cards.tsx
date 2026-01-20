@@ -49,7 +49,6 @@ const Cards = observer(({ is_mobile, has_dashboard_strategies }: TCardProps) => 
     const openFileLoader = () => {
         toggleLoadModal();
         setActiveTabIndex(is_mobile ? 0 : 1);
-        setActiveTab(DBOT_TABS.BOT_BUILDER);
     };
 
     const actions: TCardArray[] = [
