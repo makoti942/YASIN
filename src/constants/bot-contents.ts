@@ -6,7 +6,6 @@ export const DBOT_TABS = {
     TUTORIAL: 4,
     FREE_BOTS: 5,
     ANALYSIS_TOOL: 6,
-    MULTI_TRADER: 7,
 } as const;
 
 export const TAB_IDS = [
@@ -17,5 +16,11 @@ export const TAB_IDS = [
     'id-tutorials',
     'id-free-bots',
     'id-analysis-tool',
-    'id-multi-trader',
 ];
+
+export const DEBOUNCE_INTERVAL_TIME = 500;
+
+export const tabs_title = {
+    WORKSPACE: 'Workspace',
+    CHART: 'Chart',
+};
