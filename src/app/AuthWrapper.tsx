@@ -1,3 +1,4 @@
+
 import React from 'react';
 import Cookies from 'js-cookie';
 import ChunkLoader from '@/components/loader/chunk-loader';
@@ -20,13 +21,12 @@ declare global {
 const setLocalStorageToken = async (
     loginInfo: URLUtils.LoginInfo[],
     paramsToDelete: string[],
-    setIsAuthComplete: React.Dispatch<React.SetStateAction<boolean>>,
     isOnline: boolean
-) => {
+): Promise<boolean> => {
     if (loginInfo.length) {
         try {
             const defaultActiveAccount = URLUtils.getDefaultActiveAccount(loginInfo);
-            if (!defaultActiveAccount) return;
+            if (!defaultActiveAccount) return false;
 
             const accountsList: Record<string, string> = {};
             const clientAccounts: Record<string, { loginid: string; token: string; currency: string }> = {};
@@ -58,8 +58,7 @@ const setLocalStorageToken = async (
                 } else if (is_valid_currency) {
                     target_account = loginInfo.find(
                         account =>
-                            !account.loginid.startsWith('VR') &&
-                            account.currency?.toUpperCase() === upper_account_currency
+                            !account.loginid.startsWith('VR') && account.currency?.toUpperCase() === upper_account_currency
                     );
                 }
 
@@ -68,13 +67,13 @@ const setLocalStorageToken = async (
                     activeLoginId = target_account.loginid;
                 }
             }
+            
+            localStorage.setItem('authToken', activeToken);
+            localStorage.setItem('active_loginid', activeLoginId);
 
-            // Skip API connection when offline
             if (!isOnline) {
                 console.log('[Auth] Offline mode - skipping API connection');
-                localStorage.setItem('authToken', activeToken);
-                localStorage.setItem('active_loginid', activeLoginId);
-                return;
+                return true;
             }
 
             try {
@@ -86,29 +85,26 @@ const setLocalStorageToken = async (
                     if (error) {
                         console.error('[Auth] Authorization failed:', error);
                         clearAuthData();
-                        setIsAuthComplete(true);
                         const is_tmb_enabled = window.is_tmb_enabled === true;
                         if (Cookies.get('logged_state') === 'true' && !is_tmb_enabled) {
                             globalObserver.emit('InvalidToken', { error });
                         }
-                        return;
+                        return true;
                     } else {
                         localStorage.setItem('client.country', authorize.country);
-                        localStorage.setItem('authToken', activeToken);
-                        localStorage.setItem('active_loginid', activeLoginId);
-                        return;
+                        return true;
                     }
                 }
             } catch (apiError) {
                 console.error('[Auth] API connection error:', apiError);
             }
-
-            localStorage.setItem('authToken', activeToken);
-            localStorage.setItem('active_loginid', activeLoginId);
+            return true;
         } catch (error) {
             console.error('Error setting up login info:', error);
+            return false;
         }
     }
+    return true;
 };
 
 export const AuthWrapper = () => {
@@ -119,34 +115,17 @@ export const AuthWrapper = () => {
     React.useEffect(() => {
         const initializeAuth = async () => {
             try {
-                await setLocalStorageToken(loginInfo, paramsToDelete, setIsAuthComplete, isOnline);
+                await setLocalStorageToken(loginInfo, paramsToDelete, isOnline);
                 URLUtils.filterSearchParams(['lang']);
-                setIsAuthComplete(true);
             } catch (error) {
                 console.error('[Auth] Authentication initialization failed:', error);
+            } finally {
                 setIsAuthComplete(true);
             }
         };
 
-        if (!isOnline) {
-            console.log('[Auth] Offline detected, proceeding with minimal auth');
-            setIsAuthComplete(true);
-        }
-
         initializeAuth();
     }, [loginInfo, paramsToDelete, isOnline]);
-
-    React.useEffect(() => {
-        if (!isOnline && !isAuthComplete) {
-            console.log('[Auth] Offline detected, setting auth timeout');
-            const timeout = setTimeout(() => {
-                console.log('[Auth] Offline timeout reached, proceeding without full auth');
-                setIsAuthComplete(true);
-            }, 2000); // 2 second timeout for offline
-
-            return () => clearTimeout(timeout);
-        }
-    }, [isOnline, isAuthComplete]);
 
     const getLoadingMessage = () => {
         if (!isOnline) return localize('Loading offline mode...');
