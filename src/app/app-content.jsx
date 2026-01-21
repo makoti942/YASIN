@@ -3,12 +3,12 @@ import { observer } from 'mobx-react-lite';
 import { ToastContainer } from 'react-toastify';
 import AuthLoadingWrapper from '@/components/auth-loading-wrapper';
 import useLiveChat from '@/components/chat/useLiveChat';
-import { BOT_RESTRICTED_COUNTRIES_LIST } from '@/components/layout/header/utils';
 import ChunkLoader from '@/components/loader/chunk-loader';
 import PWAInstallModal from '@/components/pwa-install-modal';
 import { getUrlBase } from '@/components/shared';
 import TncStatusUpdateModal from '@/components/tnc-status-update-modal';
 import TransactionDetailsModal from '@/components/transaction-details';
+import { TickDataProvider } from '@/contexts/TickDataContext';
 import { api_base, ApiHelpers, ServerTime } from '@/external/bot-skeleton';
 import { V2GetActiveToken } from '@/external/bot-skeleton/services/api/appId';
 import { CONNECTION_STATUS } from '@/external/bot-skeleton/services/api/observables/connection-status-stream';
@@ -23,7 +23,6 @@ import initHotjar from '@/utils/hotjar';
 import { setSmartChartsPublicPath } from '@deriv/deriv-charts';
 import { ThemeProvider } from '@deriv-com/quill-ui';
 import { localize } from '@deriv-com/translations';
-import { TickDataProvider } from '@/contexts/TickDataContext';
 import Audio from '../components/audio';
 import BlocklyLoading from '../components/blockly-loading';
 import BotStopped from '../components/bot-stopped';
@@ -36,7 +35,6 @@ import '../components/bot-notification/bot-notification.scss';
 const AppContent = observer(() => {
     const [is_api_initialized, setIsApiInitialized] = React.useState(false);
     const [is_loading, setIsLoading] = React.useState(true);
-    const [is_eu_error_loading, setIsEuErrorLoading] = React.useState(true);
     const [offline_timeout, setOfflineTimeout] = React.useState(null);
     const store = useStore();
     const { app, transactions, common, client } = store;
@@ -70,10 +68,10 @@ const AppContent = observer(() => {
     useIntercom(token);
 
     useEffect(() => {
+        console.log('[AppContent] Connection status changed:', connectionStatus);
         if (connectionStatus === CONNECTION_STATUS.OPENED) {
             setIsApiInitialized(true);
             common.setSocketOpened(true);
-            // Clear offline timeout if connection is restored
             if (offline_timeout) {
                 clearTimeout(offline_timeout);
                 setOfflineTimeout(null);
@@ -83,23 +81,19 @@ const AppContent = observer(() => {
         }
     }, [common, connectionStatus, offline_timeout]);
 
-    // Handle offline scenarios - don't wait indefinitely for API
     useEffect(() => {
         if (!isOnline && is_loading) {
-            console.log('[Offline] Detected offline state, setting timeout to show dashboard');
+            console.log('[AppContent] Offline detected, setting timeout.');
             const timeout = setTimeout(() => {
-                console.log('[Offline] Timeout reached, showing dashboard in offline mode');
+                console.log('[AppContent] Offline timeout reached.');
                 setIsLoading(false);
                 setIsApiInitialized(true);
-                // Initialize basic stores for offline mode
                 if (!app.dbot_store) {
                     init();
                 }
-            }, 3000); // Wait 3 seconds for potential connection, then show dashboard
-
+            }, 3000);
             setOfflineTimeout(timeout);
         } else if (isOnline && offline_timeout) {
-            // Clear timeout if we come back online
             clearTimeout(offline_timeout);
             setOfflineTimeout(null);
         }
@@ -117,30 +111,6 @@ const AppContent = observer(() => {
         html?.setAttribute('lang', current_language.toLowerCase());
         html?.setAttribute('dir', current_language.toLowerCase() === 'ar' ? 'rtl' : 'ltr');
     }, [current_language, html]);
-
-    // Check for EU client error early
-    const is_eu_country = client?.is_eu_country;
-    const clients_logged_out_country_code = client?.clients_country;
-    const clients_logged_in_country_code = client?.account_settings?.country_code;
-    const is_client_logged_in = client?.is_logged_in;
-
-    useEffect(() => {
-        const bot_restricted_countries = BOT_RESTRICTED_COUNTRIES_LIST();
-
-        if (!client.is_logged_in) {
-            // For logged out users
-            if (clients_logged_out_country_code) {
-                const is_restricted = !!bot_restricted_countries[clients_logged_out_country_code];
-                setIsEuErrorLoading(client.is_eu_country && is_restricted);
-            }
-        } else {
-            // For logged in users
-            if (clients_logged_in_country_code) {
-                const is_restricted = !!bot_restricted_countries[clients_logged_in_country_code];
-                setIsEuErrorLoading(is_restricted);
-            }
-        }
-    }, [is_eu_country, clients_logged_out_country_code, clients_logged_in_country_code, is_client_logged_in]);
 
     const handleMessage = React.useCallback(
         ({ data }) => {
@@ -163,11 +133,13 @@ const AppContent = observer(() => {
 
     React.useEffect(() => {
         if (!is_subscribed_to_msg_listener.current && client.is_logged_in && is_api_initialized && api_base?.api) {
+            console.log('[AppContent] Subscribing to message listener.');
             is_subscribed_to_msg_listener.current = true;
             msg_listener.current = api_base.api.onMessage()?.subscribe(handleMessage);
         }
         return () => {
             if (is_subscribed_to_msg_listener.current && msg_listener.current) {
+                console.log('[AppContent] Unsubscribing from message listener.');
                 is_subscribed_to_msg_listener.current = false;
                 msg_listener.current.unsubscribe?.();
             }
@@ -179,6 +151,7 @@ const AppContent = observer(() => {
     }, [client.is_options_blocked, client.account_settings?.country_code, client.clients_country]);
 
     const init = () => {
+        console.log('[AppContent] Initializing stores.');
         ServerTime.init(common);
         app.setDBotEngineStores();
         ApiHelpers.setInstance(app.api_helpers_store);
@@ -188,20 +161,23 @@ const AppContent = observer(() => {
     };
 
     const changeActiveSymbolLoadingState = () => {
+        console.log('[AppContent] Initializing and retrieving active symbols.');
         init();
         const retrieveActiveSymbols = () => {
             const { active_symbols } = ApiHelpers.instance;
             if (!isOnline) {
+                console.log('[AppContent] Offline, skipping active symbols retrieval.');
                 setIsLoading(false);
                 return;
             }
             active_symbols
                 .retrieveActiveSymbols(true)
                 .then(() => {
+                    console.log('[AppContent] Active symbols retrieved.');
                     setIsLoading(false);
                 })
                 .catch(error => {
-                    console.error('[API] Failed to retrieve active symbols:', error);
+                    console.error('[AppContent] Failed to retrieve active symbols:', error);
                     setIsLoading(false);
                 });
         };
@@ -221,6 +197,7 @@ const AppContent = observer(() => {
             setTimeout(() => {
                 clearInterval(intervalId);
                 if (is_loading) {
+                    console.log('[AppContent] Active symbols retrieval timed out.');
                     setIsLoading(false);
                 }
             }, 10000);
@@ -229,6 +206,7 @@ const AppContent = observer(() => {
 
     React.useEffect(() => {
         if (is_api_initialized) {
+            console.log('[AppContent] API initialized, starting loading sequence.');
             init();
             setIsLoading(true);
             if (!client.is_logged_in) {
@@ -250,13 +228,12 @@ const AppContent = observer(() => {
         }
     }, []);
 
-    if (common?.error) return null;
+    if (common?.error) {
+        console.error('[AppContent] Common error:', common.error);
+        return null;
+    }
 
-    const getLoadingMessage = () => {
-        if (is_eu_error_loading) return '';
-        if (!isOnline) return localize('Loading offline dashboard...');
-        return localize('Initializing Deriv Bot account...');
-    };
+    console.log(`[AppContent] Rendering: is_loading=${is_loading}, isOnline=${isOnline}`);
 
     const content = (
         <AuthLoadingWrapper>
@@ -278,8 +255,15 @@ const AppContent = observer(() => {
         </AuthLoadingWrapper>
     );
 
-    if (!isOnline) return content;
-    return is_loading ? <ChunkLoader message={getLoadingMessage()} /> : content;
+    if (is_loading) {
+        let message = 'Initializing Deriv Bot account...';
+        if (!isOnline) {
+            message = 'Loading offline dashboard...';
+        }
+        return <ChunkLoader message={localize(message)} />;
+    }
+
+    return content;
 });
 
 export default AppContent;
