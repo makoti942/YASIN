@@ -38,6 +38,7 @@ const Tutorial = lazy(() => import('../tutorials'));
 const FreeBots = lazy(() => import('../free-bots'));
 const AnalysisTool = lazy(() => import('../analysis-tool'));
 const Dcircles = lazy(() => import('../dcircles'));
+const MultiTrader = lazy(() => import('../multi-trader/multi-trader'));
 
 const AppWrapper = observer(() => {
     const { connectionStatus } = useApiBase();
@@ -69,7 +70,7 @@ const AppWrapper = observer(() => {
     const { clear } = summary_card;
     const { DASHBOARD, BOT_BUILDER } = DBOT_TABS;
     const init_render = React.useRef(true);
-    const hash = ['dashboard', 'bot_builder', 'dcircles', 'chart', 'tutorial', 'free_bots', 'analysis_tool'];
+    const hash = ['dashboard', 'bot_builder', 'dcircles', 'chart', 'tutorial', 'free_bots', 'analysis_tool', 'multi_trader'];
     const { isDesktop } = useDevice();
     const location = useLocation();
     const navigate = useNavigate();
@@ -276,7 +277,7 @@ const AppWrapper = observer(() => {
                     })}
                 >
                     <div>
-                        {!isDesktop && left_tab_shadow && <span className='tabs-shadow tabs-shadow--left' />}{' '}
+                        {!isDesktop && left_tab_shadow && <span className='tabs-shadow tabs-shadow--left' />} 
                         <Tabs active_index={active_tab} className='main__tabs' onTabItemClick={handleTabChange} top>
                             <div
                                 label={
@@ -418,8 +419,31 @@ const AppWrapper = observer(() => {
                                     </Suspense>
                                 </div>
                             </div>
+                             <div
+                                label={
+                                    <>
+                                        <LabelPairedObjectsColumnCaptionRegularIcon
+                                            height='24px'
+                                            width='24px'
+                                            fill='var(--text-general)'
+                                        />
+                                        <Localize i18n_default_text='Multi Trader' />
+                                    </>
+                                }
+                                id='id-multi-trader'
+                            >
+                                <div className='multi-trader-wrapper'>
+                                    <Suspense
+                                        fallback={
+                                            <ChunkLoader message={localize('Please wait, loading Multi Trader...')} />
+                                        }
+                                    >
+                                        <MultiTrader />
+                                    </Suspense>
+                                </div>
+                            </div>
                         </Tabs>
-                        {!isDesktop && right_tab_shadow && <span className='tabs-shadow tabs-shadow--right' />}{' '}
+                        {!isDesktop && right_tab_shadow && <span className='tabs-shadow tabs-shadow--right' />} 
                     </div>
                 </div>
             </div>
