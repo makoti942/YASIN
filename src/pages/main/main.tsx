@@ -32,7 +32,6 @@ import ChartModal from '../chart/chart-modal';
 import Dashboard from '../dashboard';
 import RunStrategy from '../dashboard/run-strategy';
 import './main.scss';
-import MultiTrader from '../multi-trader/multi-trader';
 
 const ChartWrapper = lazy(() => import('../chart/chart-wrapper'));
 const Tutorial = lazy(() => import('../tutorials'));
@@ -70,7 +69,7 @@ const AppWrapper = observer(() => {
     const { clear } = summary_card;
     const { DASHBOARD, BOT_BUILDER } = DBOT_TABS;
     const init_render = React.useRef(true);
-    const hash = ['dashboard', 'bot_builder', 'dcircles', 'chart', 'tutorial', 'free_bots', 'analysis_tool', 'multi_trader'];
+    const hash = ['dashboard', 'bot_builder', 'dcircles', 'chart', 'tutorial', 'free_bots', 'analysis_tool'];
     const { isDesktop } = useDevice();
     const location = useLocation();
     const navigate = useNavigate();
@@ -417,23 +416,6 @@ const AppWrapper = observer(() => {
                                     >
                                         <AnalysisTool />
                                     </Suspense>
-                                </div>
-                            </div>
-                             <div
-                                label={
-                                    <>
-                                        <LabelPairedObjectsColumnCaptionRegularIcon
-                                            height='24px'
-                                            width='24px'
-                                            fill='var(--text-general)'
-                                        />
-                                        <Localize i18n_default_text='Multi Trader' />
-                                    </>
-                                }
-                                id='id-multi-trader'
-                            >
-                                <div className='multi-trader-wrapper'>
-                                   <MultiTrader />
                                 </div>
                             </div>
                         </Tabs>
