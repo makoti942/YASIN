@@ -32,13 +32,13 @@ import ChartModal from '../chart/chart-modal';
 import Dashboard from '../dashboard';
 import RunStrategy from '../dashboard/run-strategy';
 import './main.scss';
+import MultiTrader from '../multi-trader/multi-trader';
 
 const ChartWrapper = lazy(() => import('../chart/chart-wrapper'));
 const Tutorial = lazy(() => import('../tutorials'));
 const FreeBots = lazy(() => import('../free-bots'));
 const AnalysisTool = lazy(() => import('../analysis-tool'));
 const Dcircles = lazy(() => import('../dcircles'));
-const MultiTrader = lazy(() => import('../multi-trader/multi-trader'));
 
 const AppWrapper = observer(() => {
     const { connectionStatus } = useApiBase();
@@ -433,13 +433,7 @@ const AppWrapper = observer(() => {
                                 id='id-multi-trader'
                             >
                                 <div className='multi-trader-wrapper'>
-                                    <Suspense
-                                        fallback={
-                                            <ChunkLoader message={localize('Please wait, loading Multi Trader...')} />
-                                        }
-                                    >
-                                        <MultiTrader />
-                                    </Suspense>
+                                   <MultiTrader />
                                 </div>
                             </div>
                         </Tabs>
