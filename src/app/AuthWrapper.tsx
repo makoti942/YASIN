@@ -55,23 +55,14 @@ const setLocalStorageToken = async (
                     const { authorize, error } = await api.authorize(loginInfo[0].token);
                     api.disconnect();
                     if (error) {
-                        // Check if the error is due to an invalid token
-                        if (error.code === 'InvalidToken') {
-                            // Set isAuthComplete to true to prevent the app from getting stuck in loading state
-                            setIsAuthComplete(true);
-
-                            const is_tmb_enabled = window.is_tmb_enabled === true;
-                            // Only emit the InvalidToken event if logged_state is true
-                            if (Cookies.get('logged_state') === 'true' && !is_tmb_enabled) {
-                                // Emit an event that can be caught by the application to retrigger OIDC authentication
-                                globalObserver.emit('InvalidToken', { error });
-                            }
-
-                            if (Cookies.get('logged_state') === 'false') {
-                                // If the user is not logged out, we need to clear the local storage
-                                clearAuthData();
-                            }
+                        console.error('[Auth] Authorization failed:', error);
+                        clearAuthData();
+                        setIsAuthComplete(true);
+                        const is_tmb_enabled = window.is_tmb_enabled === true;
+                        if (Cookies.get('logged_state') === 'true' && !is_tmb_enabled) {
+                            globalObserver.emit('InvalidToken', { error });
                         }
+                        return;
                     } else {
                         localStorage.setItem('client.country', authorize.country);
                         const firstId = authorize?.account_list[0]?.loginid;
