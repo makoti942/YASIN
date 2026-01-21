@@ -1,6 +1,7 @@
 import React from 'react';
 import Cookies from 'js-cookie';
 import ChunkLoader from '@/components/loader/chunk-loader';
+import { crypto_currencies_display_order, fiat_currencies_display_order } from '@/components/shared';
 import { generateDerivApiInstance } from '@/external/bot-skeleton/services/api/appId';
 import { observer as globalObserver } from '@/external/bot-skeleton/utils/observer';
 import { useOfflineDetection } from '@/hooks/useOfflineDetection';
@@ -40,11 +41,39 @@ const setLocalStorageToken = async (
 
             URLUtils.filterSearchParams(paramsToDelete);
 
+            const url_params = new URLSearchParams(window.location.search);
+            const account_currency_from_url = url_params.get('account');
+            let activeToken = loginInfo[0].token;
+            let activeLoginId = loginInfo[0].loginid;
+
+            if (account_currency_from_url) {
+                const upper_account_currency = account_currency_from_url.toUpperCase();
+                const validCurrencies = [...fiat_currencies_display_order, ...crypto_currencies_display_order];
+                const is_valid_currency = validCurrencies.includes(upper_account_currency);
+
+                let target_account;
+
+                if (upper_account_currency === 'DEMO') {
+                    target_account = loginInfo.find(account => account.loginid.startsWith('VR'));
+                } else if (is_valid_currency) {
+                    target_account = loginInfo.find(
+                        account =>
+                            !account.loginid.startsWith('VR') &&
+                            account.currency?.toUpperCase() === upper_account_currency
+                    );
+                }
+
+                if (target_account) {
+                    activeToken = target_account.token;
+                    activeLoginId = target_account.loginid;
+                }
+            }
+
             // Skip API connection when offline
             if (!isOnline) {
                 console.log('[Auth] Offline mode - skipping API connection');
-                localStorage.setItem('authToken', loginInfo[0].token);
-                localStorage.setItem('active_loginid', loginInfo[0].loginid);
+                localStorage.setItem('authToken', activeToken);
+                localStorage.setItem('active_loginid', activeLoginId);
                 return;
             }
 
@@ -52,7 +81,7 @@ const setLocalStorageToken = async (
                 const api = await generateDerivApiInstance();
 
                 if (api) {
-                    const { authorize, error } = await api.authorize(loginInfo[0].token);
+                    const { authorize, error } = await api.authorize(activeToken);
                     api.disconnect();
                     if (error) {
                         console.error('[Auth] Authorization failed:', error);
@@ -65,24 +94,17 @@ const setLocalStorageToken = async (
                         return;
                     } else {
                         localStorage.setItem('client.country', authorize.country);
-                        const firstId = authorize?.account_list[0]?.loginid;
-                        const filteredTokens = loginInfo.filter(token => token.loginid === firstId);
-                        if (filteredTokens.length) {
-                            localStorage.setItem('authToken', filteredTokens[0].token);
-                            localStorage.setItem('active_loginid', filteredTokens[0].loginid);
-                            return;
-                        }
+                        localStorage.setItem('authToken', activeToken);
+                        localStorage.setItem('active_loginid', activeLoginId);
+                        return;
                     }
                 }
             } catch (apiError) {
                 console.error('[Auth] API connection error:', apiError);
-                // Still set token in offline mode
-                localStorage.setItem('authToken', loginInfo[0].token);
-                localStorage.setItem('active_loginid', loginInfo[0].loginid);
             }
 
-            localStorage.setItem('authToken', loginInfo[0].token);
-            localStorage.setItem('active_loginid', loginInfo[0].loginid);
+            localStorage.setItem('authToken', activeToken);
+            localStorage.setItem('active_loginid', activeLoginId);
         } catch (error) {
             console.error('Error setting up login info:', error);
         }
@@ -97,19 +119,15 @@ export const AuthWrapper = () => {
     React.useEffect(() => {
         const initializeAuth = async () => {
             try {
-                // Pass isOnline to setLocalStorageToken to handle offline mode properly
                 await setLocalStorageToken(loginInfo, paramsToDelete, setIsAuthComplete, isOnline);
                 URLUtils.filterSearchParams(['lang']);
                 setIsAuthComplete(true);
             } catch (error) {
                 console.error('[Auth] Authentication initialization failed:', error);
-                // Don't block the app if auth fails, especially when offline
                 setIsAuthComplete(true);
             }
         };
 
-        // If offline, set auth complete immediately but still run initializeAuth
-        // to save login info to localStorage for offline use
         if (!isOnline) {
             console.log('[Auth] Offline detected, proceeding with minimal auth');
             setIsAuthComplete(true);
@@ -118,7 +136,6 @@ export const AuthWrapper = () => {
         initializeAuth();
     }, [loginInfo, paramsToDelete, isOnline]);
 
-    // Add timeout for offline scenarios to prevent infinite loading
     React.useEffect(() => {
         if (!isOnline && !isAuthComplete) {
             console.log('[Auth] Offline detected, setting auth timeout');
