@@ -1,3 +1,4 @@
+
 import React from 'react';
 import classNames from 'classnames';
 import { NavLink } from 'react-router-dom';
@@ -54,6 +55,7 @@ const ResultOverlay = ({
     result,
 }: TResultOverlayProps) => {
     const is_contract_won = result === 'won';
+    const color = is_contract_won ? 'profit-success' : 'loss-danger';
 
     return (
         <React.Fragment>
@@ -89,13 +91,8 @@ const ResultOverlay = ({
                     )}
                     <div className='dc-result__content'>
                         <ResultStatusIcon getCardLabels={getCardLabels} is_contract_won={is_contract_won} />
-                        <Text
-                            weight='bold'
-                            size='s'
-                            lineHeight='2xl'
-                            color={is_contract_won ? 'profit-success' : 'loss-danger'}
-                        >
-                            <Money amount={payout_info} currency={currency} has_sign show_currency />
+                        <Text weight='bold' size='s' lineHeight='2xl' color={color}>
+                            <Money amount={payout_info} currency={currency} has_sign show_currency color={color} />
                         </Text>
                     </div>
                 </div>

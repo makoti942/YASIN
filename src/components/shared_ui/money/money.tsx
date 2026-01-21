@@ -1,4 +1,6 @@
+
 import React from 'react';
+import classNames from 'classnames';
 import { formatMoney, getCurrencyDisplayCode } from '@/components/shared';
 
 type TMoneyProps = {
@@ -8,6 +10,7 @@ type TMoneyProps = {
     has_sign: boolean;
     should_format: boolean;
     show_currency: boolean; // if true, append currency symbol
+    color?: string;
 };
 
 const Money = ({
@@ -17,6 +20,7 @@ const Money = ({
     has_sign,
     should_format = true,
     show_currency = false,
+    color,
 }: Partial<TMoneyProps>) => {
     let sign = '';
     if (Number(amount) && (Number(amount) < 0 || has_sign)) {
@@ -30,7 +34,7 @@ const Money = ({
     return (
         <React.Fragment>
             <span>{has_sign && sign}</span>
-            <span data-testid='dt_span' className={className}>
+            <span data-testid='dt_span' className={classNames(className, color)}>
                 {final_amount} {show_currency && getCurrencyDisplayCode(currency)}
             </span>
         </React.Fragment>
